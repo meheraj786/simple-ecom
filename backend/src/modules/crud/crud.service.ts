@@ -74,16 +74,20 @@ export function createCrudService(
   delegateName: string,
   config: CrudConfig,
 ): CrudService {
-  const delegate = (prisma as unknown as Record<string, CrudDelegate>)[
-    delegateName
-  ];
-  if (!delegate) {
-    throw new Error(`Unknown Prisma delegate: ${delegateName}`);
-  }
+  const getDelegate = () => {
+    const delegate = (prisma as unknown as Record<string, CrudDelegate>)[
+      delegateName
+    ];
+    if (!delegate) {
+      throw new Error(`Unknown Prisma delegate: ${delegateName}`);
+    }
+    return delegate;
+  };
 
   return {
     async list(page, limit): Promise<CrudPage> {
       const where = config.publicWhere;
+      const delegate = getDelegate();
       const [records, total] = await Promise.all([
         delegate.findMany({
           skip: (page - 1) * limit,
@@ -100,6 +104,7 @@ export function createCrudService(
     },
 
     async getById(id) {
+      const delegate = getDelegate();
       const record = await delegate.findFirst({
         where: { id, ...(config.publicWhere ?? {}) },
       });
@@ -112,18 +117,21 @@ export function createCrudService(
     },
 
     async create(data) {
+      const delegate = getDelegate();
       validateInput(config, data, true);
       const record = await delegate.create({ data });
       return sanitizeRecord(config, record);
     },
 
     async update(id, data) {
+      const delegate = getDelegate();
       validateInput(config, data, false);
       const record = await delegate.update({ where: { id }, data });
       return sanitizeRecord(config, record);
     },
 
     async delete(id) {
+      const delegate = getDelegate();
       const record = await delegate.delete({ where: { id } });
       return sanitizeRecord(config, record);
     },

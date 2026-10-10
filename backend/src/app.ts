@@ -9,7 +9,7 @@ import { apiRateLimiter } from "./middlewares/rateLimiter.js";
 import apiRoutes from "./routes/index.js";
 
 const app = express();
-const allowedOrigins = (process.env.CLIENT_URL ?? "http://localhost:5173")
+const allowedOrigins = (process.env.CLIENT_URL ?? "http://localhost:3000")
   .split(",")
   .map((origin) => origin.trim())
   .filter(Boolean);

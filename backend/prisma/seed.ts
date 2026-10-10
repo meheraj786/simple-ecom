@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { prisma } from "../src/db.js";
+import { connectDB, disconnectDB, prisma } from "../src/db.js";
 
 async function seedVendor(): Promise<void> {
   const email = process.env.SEED_VENDOR_EMAIL?.trim().toLowerCase();
@@ -11,7 +11,7 @@ async function seedVendor(): Promise<void> {
     );
   }
 
-  await prisma.$connect();
+  await connectDB();
 
   const user = await prisma.user.upsert({
     where: { email },
@@ -40,5 +40,5 @@ seedVendor()
     process.exitCode = 1;
   })
   .finally(async () => {
-    await prisma.$disconnect();
+    await disconnectDB();
   });

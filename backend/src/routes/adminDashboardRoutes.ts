@@ -5,8 +5,16 @@ import { successResponse } from "../utils/apiResponse.js";
 
 const router = Router();
 
-router.get("/", authenticate, requireAdmin, async (_request, response) => {
+router.get("/", authenticate, requireAdmin, async (request, response) => {
   const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+  const page = Math.max(
+    1,
+    Number.parseInt(String(request.query.page ?? "1"), 10) || 1,
+  );
+  const limit = Math.min(
+    100,
+    Math.max(1, Number.parseInt(String(request.query.limit ?? "20"), 10) || 20),
+  );
 
   const [
     users,
@@ -19,6 +27,7 @@ router.get("/", authenticate, requireAdmin, async (_request, response) => {
     orderStatusCounts,
     productStatusCounts,
     recentOrders,
+    recentOrderTotal,
     unreadContactMessages,
   ] = await Promise.all([
     prisma.user.count(),
@@ -37,7 +46,8 @@ router.get("/", authenticate, requireAdmin, async (_request, response) => {
     prisma.order.groupBy({ by: ["status"], _count: { _all: true } }),
     prisma.product.groupBy({ by: ["status"], _count: { _all: true } }),
     prisma.order.findMany({
-      take: 10,
+      skip: (page - 1) * limit,
+      take: limit,
       orderBy: { createdAt: "desc" },
       select: {
         id: true,
@@ -50,6 +60,7 @@ router.get("/", authenticate, requireAdmin, async (_request, response) => {
         _count: { select: { items: true } },
       },
     }),
+    prisma.order.count(),
     prisma.contactMessage.count({ where: { isRead: false } }),
   ]);
 
@@ -68,7 +79,15 @@ router.get("/", authenticate, requireAdmin, async (_request, response) => {
       count: _count._all,
     })),
     unreadContactMessages,
-    recentOrders,
+    recentOrders: {
+      items: recentOrders,
+      pagination: {
+        page,
+        limit,
+        total: recentOrderTotal,
+        pages: Math.ceil(recentOrderTotal / limit),
+      },
+    },
   });
 });
 
