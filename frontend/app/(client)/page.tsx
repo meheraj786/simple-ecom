@@ -5,8 +5,9 @@ import Link from "next/link";
 import { useState } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { useCategories, useProducts, useReviews } from "@/hooks";
+import { toProductCard } from "@/lib/product-view";
 import {
-  Heart,
   ChevronRight,
   ChevronLeft,
   ArrowRight,
@@ -19,7 +20,7 @@ import {
   Send,
   MessageCircle,
 } from "lucide-react";
-import { ProductCard } from "@/components/ProductCard";
+import { Product, ProductCard } from "@/components/ProductCard";
 
 // ==========================================
 // DUMMY DATA DEFINITIONS
@@ -36,20 +37,6 @@ interface CuratedCategory {
   id: string;
   title: string;
   image: string;
-}
-
-interface Product {
-  id: string;
-  name: string;
-  category: string;
-  price: string;
-  originalPrice?: string;
-  image: string;
-  discountBadge?: string;
-  tagBadge?: string;
-  isFeatured?: boolean;
-  optionsText?: string;
-  inStock?: boolean;
 }
 
 interface Testimonial {
@@ -353,6 +340,96 @@ const customerReviews: Testimonial[] = [
 // ==========================================
 export default function HomePage() {
   const [copied, setCopied] = useState(false);
+  const categoriesQuery = useCategories({ page: 1, limit: 100 });
+  const featuredQuery = useProducts({
+    page: 1,
+    limit: 5,
+    collections: ["featured"],
+  });
+  const newArrivalsQuery = useProducts({
+    page: 1,
+    limit: 4,
+    collections: ["new-arrivals"],
+  });
+  const bestSellersQuery = useProducts({
+    page: 1,
+    limit: 5,
+    collections: ["best-sellers"],
+  });
+  const catalogQuery = useProducts({ page: 1, limit: 100 });
+  const reviewsQuery = useReviews({ page: 1, limit: 3 });
+
+  const apiCategories = categoriesQuery.data?.items ?? [];
+  const homeCategories = categoriesQuery.isPending
+    ? shopCategories
+    : apiCategories.map((category, index) => ({
+        id: category.id,
+        name: category.name,
+        code: String(index + 1).padStart(2, "0"),
+        image:
+          category.image ??
+          shopCategories[index % shopCategories.length]?.image ??
+          "",
+      }));
+  const homeCuratedCategories = categoriesQuery.isPending
+    ? curatedCategories
+    : apiCategories.slice(0, 4).map((category, index) => ({
+        id: category.id,
+        title: category.name,
+        image:
+          category.image ??
+          curatedCategories[index % curatedCategories.length]?.image ??
+          "",
+      }));
+  const homeFeaturedProducts = featuredQuery.isPending
+    ? featuredProducts
+    : (featuredQuery.data?.items ?? []).map(toProductCard);
+  const homeNewArrivals = newArrivalsQuery.isPending
+    ? newArrivalProducts
+    : (newArrivalsQuery.data?.items ?? []).map(toProductCard);
+  const allProducts = catalogQuery.data?.items ?? [];
+  const homeFootwear = catalogQuery.isPending
+    ? footwearProducts
+    : allProducts
+        .filter((product) =>
+          product.categories?.some(({ category }) =>
+            category.name.toLowerCase().includes("footwear"),
+          ),
+        )
+        .slice(0, 5)
+        .map(toProductCard);
+  const homeAccessories = catalogQuery.isPending
+    ? watchesAccessoriesProducts
+    : allProducts
+        .filter((product) =>
+          product.categories?.some(({ category }) =>
+            /watch|accessor/i.test(category.name),
+          ),
+        )
+        .slice(0, 5)
+        .map(toProductCard);
+  const homeWinterWear = catalogQuery.isPending
+    ? winterWearProducts
+    : allProducts
+        .filter((product) =>
+          product.categories?.some(({ category }) =>
+            category.name.toLowerCase().includes("winter"),
+          ),
+        )
+        .slice(0, 5)
+        .map(toProductCard);
+  const homeBestSellers = bestSellersQuery.isPending
+    ? watchesAccessoriesProducts
+    : (bestSellersQuery.data?.items ?? []).map(toProductCard);
+  const homeReviews = reviewsQuery.isPending
+    ? customerReviews
+    : (reviewsQuery.data?.items ?? []).map((review) => ({
+        id: review.id,
+        quote: review.comment || "A verified customer review.",
+        reviewedItem: "Customer review",
+        customerName: review.userName,
+        rating: review.rating,
+      }));
 
   const handleCopyCode = () => {
     navigator.clipboard.writeText("NEWMEM20");
@@ -362,90 +439,93 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-white text-gray-900 antialiased selection:bg-black selection:text-white">
-      {/* 1. Header / Navbar Component */}
-      <Navbar />
 
-      <main className="space-y-20 pb-20">
+
+      <main className="space-y-16 sm:space-y-24 pb-20">
         {/* ========================================================
-            2. HERO SECTION
+            HERO SECTION
            ======================================================== */}
-        <section className="relative w-full h-[520px] md:h-[600px] bg-[#E8E6E1] overflow-hidden">
+        <section className="relative w-full h-140 md:h-160 bg-[#E8E6E1] overflow-hidden">
           <Image
             src="https://images.unsplash.com/photo-1490114538077-0a7f8cb49891?auto=format&fit=crop&w=1920&q=80"
             alt="The Men Edition"
             fill
             priority
-            className="object-cover object-right md:object-center"
+            className="object-cover object-right md:object-center scale-105"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-black/20 to-transparent" />
+          <div className="absolute inset-0 bg-linear-to-r from-black/60 via-black/25 to-transparent" />
 
           <div className="relative max-w-7xl mx-auto h-full flex items-center px-6 sm:px-8">
-            <div className="max-w-md text-white space-y-4">
-              <span className="inline-block text-[10px] tracking-[0.25em] uppercase font-semibold text-gray-200">
+            <div className="max-w-md text-white space-y-5">
+              <span className="inline-flex items-center gap-2 text-[10px] tracking-[0.25em] uppercase font-semibold text-gray-200">
+                <span className="w-6 h-px bg-amber-400" />
                 FEATURED CATEGORY SPOTLIGHT
               </span>
-              <h1 className="text-4xl sm:text-6xl font-serif tracking-tight leading-none">
+              <h1 className="text-5xl sm:text-7xl font-serif tracking-tight leading-[0.95]">
                 The Men <br />
                 <span className="italic font-light">Edition.</span>
               </h1>
-              <p className="text-xs text-gray-300 font-light leading-relaxed max-w-xs">
+              <p className="text-xs sm:text-sm text-gray-300 font-light leading-relaxed max-w-xs">
                 Curated lifestyle pieces built with precision and durability.
               </p>
-              <div>
+              <div className="flex items-center gap-4 pt-1">
                 <Link
                   href="#"
-                  className="inline-flex items-center gap-2 bg-black text-white text-xs font-semibold px-6 py-3 rounded hover:bg-gray-900 transition"
+                  className="inline-flex items-center gap-2 bg-white text-black text-xs font-semibold px-6 py-3.5 rounded-full hover:bg-gray-100 transition-all hover:gap-3"
                 >
                   SHOP MEN NOW
                   <ArrowRight className="w-3.5 h-3.5" />
                 </Link>
+                <Link
+                  href="#"
+                  className="text-xs font-semibold text-white/90 hover:text-white underline underline-offset-4"
+                >
+                  View Lookbook
+                </Link>
               </div>
             </div>
+          </div>
+
+          {/* Scroll cue / slide dots */}
+          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-1.5">
+            {[0, 1, 2].map((i) => (
+              <span
+                key={i}
+                className={`h-1 rounded-full transition-all ${
+                  i === 0 ? "w-6 bg-white" : "w-1.5 bg-white/40"
+                }`}
+              />
+            ))}
           </div>
         </section>
 
         {/* ========================================================
-            3. SHOP BY CATEGORY (Department 01)
+            SHOP BY CATEGORY
            ======================================================== */}
         <section className="max-w-7xl mx-auto px-4 sm:px-8">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <span className="text-[10px] tracking-[0.2em] uppercase text-gray-400 font-medium block">
-                DEPARTMENT 01
-              </span>
-              <h2 className="text-xl sm:text-2xl font-serif font-bold tracking-tight">
-                SHOP BY CATEGORY
-              </h2>
-            </div>
-            <Link
-              href="#"
-              className="text-xs font-semibold text-gray-600 hover:text-black flex items-center gap-1 tracking-wider uppercase"
-            >
-              VIEW ALL <ChevronRight className="w-3.5 h-3.5" />
-            </Link>
-          </div>
+          <SectionHeader eyebrow="DEPARTMENT 01" title="SHOP BY CATEGORY" />
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {shopCategories.map((cat) => (
+            {homeCategories.map((cat) => (
               <div
                 key={cat.id}
-                className="group relative aspect-[3/4] rounded-xl overflow-hidden bg-gray-100 cursor-pointer shadow-sm"
+                className="group relative aspect-3/4 rounded-2xl overflow-hidden bg-gray-100 cursor-pointer shadow-sm hover:shadow-xl transition-shadow duration-300"
               >
                 <Image
                   src={cat.image}
                   alt={cat.name}
                   fill
-                  className="object-cover group-hover:scale-105 transition-transform duration-500"
+                  className="object-cover group-hover:scale-110 transition-transform duration-700"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-                <div className="absolute bottom-4 left-4 text-white">
+                <div className="absolute inset-0 bg-linear-to-t from-black/85 via-black/10 to-transparent" />
+                <div className="absolute bottom-4 left-4 right-4 text-white">
                   <span className="text-[10px] text-gray-300 block font-light">
                     {cat.code}
                   </span>
-                  <h3 className="text-base font-semibold leading-tight">
+                  <h3 className="text-base sm:text-lg font-semibold leading-tight">
                     {cat.name}
                   </h3>
-                  <span className="text-[10px] text-gray-300 flex items-center gap-1 mt-1 group-hover:underline">
+                  <span className="text-[10px] text-gray-300 flex items-center gap-1 mt-1.5 opacity-0 group-hover:opacity-100 translate-y-1 group-hover:translate-y-0 transition-all duration-300">
                     EXPLORE <ArrowRight className="w-2.5 h-2.5" />
                   </span>
                 </div>
@@ -455,36 +535,29 @@ export default function HomePage() {
         </section>
 
         {/* ========================================================
-            4. CURATED CATEGORIES (Department 02)
+            CURATED CATEGORIES
            ======================================================== */}
         <section className="max-w-7xl mx-auto px-4 sm:px-8">
-          <div className="mb-6">
-            <span className="text-[10px] tracking-[0.2em] uppercase text-gray-400 font-medium block">
-              DEPARTMENT 02
-            </span>
-            <h2 className="text-xl sm:text-2xl font-serif font-bold tracking-tight">
-              CURATED CATEGORIES
-            </h2>
-          </div>
+          <SectionHeader eyebrow="DEPARTMENT 02" title="CURATED CATEGORIES" />
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {curatedCategories.map((cat) => (
+            {homeCuratedCategories.map((cat) => (
               <div
                 key={cat.id}
-                className="group relative h-48 sm:h-64 rounded-xl overflow-hidden bg-gray-100 cursor-pointer"
+                className="group relative h-52 sm:h-72 rounded-2xl overflow-hidden bg-gray-100 cursor-pointer"
               >
                 <Image
                   src={cat.image}
                   alt={cat.title}
                   fill
-                  className="object-cover group-hover:scale-105 transition-transform duration-500"
+                  className="object-cover group-hover:scale-110 transition-transform duration-700"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
-                <div className="absolute bottom-5 left-6 text-white">
-                  <h3 className="text-lg sm:text-xl font-serif font-semibold">
+                <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/20 to-transparent" />
+                <div className="absolute bottom-6 left-6 text-white">
+                  <h3 className="text-xl sm:text-2xl font-serif font-semibold">
                     {cat.title}
                   </h3>
-                  <span className="text-[11px] text-gray-200 flex items-center gap-1 mt-1 group-hover:underline">
+                  <span className="text-[11px] text-gray-200 flex items-center gap-1 mt-2 group-hover:gap-2 transition-all">
                     SHOP COLLECTION <ArrowRight className="w-3 h-3" />
                   </span>
                 </div>
@@ -494,192 +567,104 @@ export default function HomePage() {
         </section>
 
         {/* ========================================================
-            5. FEATURED COLLECTION
+            FEATURED COLLECTION
            ======================================================== */}
         <section className="max-w-7xl mx-auto px-4 sm:px-8">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <span className="text-[10px] tracking-[0.2em] uppercase text-gray-400 font-medium block">
-                CURATED SHOWCASE
-              </span>
-              <h2 className="text-xl sm:text-2xl font-serif font-bold tracking-tight">
-                FEATURED COLLECTION
-              </h2>
-            </div>
-            <div className="flex items-center gap-3">
-              <Link
-                href="#"
-                className="text-xs font-semibold text-gray-600 hover:text-black flex items-center gap-1 tracking-wider uppercase mr-2"
-              >
-                VIEW ALL <ChevronRight className="w-3.5 h-3.5" />
-              </Link>
-              <button
-                aria-label="Previous"
-                className="w-7 h-7 rounded-full border border-gray-200 flex items-center justify-center hover:bg-gray-100 transition"
-              >
-                <ChevronLeft className="w-3.5 h-3.5 text-gray-600" />
-              </button>
-              <button
-                aria-label="Next"
-                className="w-7 h-7 rounded-full border border-gray-200 flex items-center justify-center hover:bg-gray-100 transition"
-              >
-                <ChevronRight className="w-3.5 h-3.5 text-gray-600" />
-              </button>
-            </div>
-          </div>
-
+          <SectionHeader
+            eyebrow="CURATED SHOWCASE"
+            title="FEATURED COLLECTION"
+            showArrows
+          />
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-            {featuredProducts.map((p) => (
+            {homeFeaturedProducts.map((p) => (
+              <ProductCard key={p.id} product={p} />
+            ))}
+          </div>
+        </section>
+
+        <section className="max-w-7xl mx-auto px-4 sm:px-8">
+          <SectionHeader eyebrow="MOST LOVED" title="BEST SELLERS" />
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+            {homeBestSellers.map((p) => (
               <ProductCard key={p.id} product={p} />
             ))}
           </div>
         </section>
 
         {/* ========================================================
-            6. NEW ARRIVALS
+            NEW ARRIVALS
            ======================================================== */}
         <section className="max-w-7xl mx-auto px-4 sm:px-8">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <span className="text-[10px] tracking-[0.2em] uppercase text-gray-400 font-medium block">
-                SEASONAL DROP
-              </span>
-              <h2 className="text-xl sm:text-2xl font-serif font-bold tracking-tight">
-                NEW ARRIVALS
-              </h2>
-            </div>
-            <Link
-              href="#"
-              className="text-xs font-semibold text-gray-600 hover:text-black flex items-center gap-1 tracking-wider uppercase"
-            >
-              VIEW ALL <ChevronRight className="w-3.5 h-3.5" />
-            </Link>
-          </div>
-
+          <SectionHeader eyebrow="SEASONAL DROP" title="NEW ARRIVALS" />
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-            {newArrivalProducts.map((p) => (
+            {homeNewArrivals.map((p) => (
               <ProductCard key={p.id} product={p} />
             ))}
           </div>
         </section>
 
         {/* ========================================================
-            7. FOOTWEAR
+            FOOTWEAR
            ======================================================== */}
         <section className="max-w-7xl mx-auto px-4 sm:px-8">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <span className="text-[10px] tracking-[0.2em] uppercase text-gray-400 font-medium block">
-                CATALOG GRID
-              </span>
-              <h2 className="text-xl sm:text-2xl font-serif font-bold tracking-tight">
-                FOOTWEAR
-              </h2>
-            </div>
-            <Link
-              href="#"
-              className="text-xs font-semibold text-gray-600 hover:text-black flex items-center gap-1 tracking-wider uppercase"
-            >
-              VIEW ALL <ChevronRight className="w-3.5 h-3.5" />
-            </Link>
-          </div>
-
+          <SectionHeader eyebrow="CATALOG GRID" title="FOOTWEAR" />
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-            {footwearProducts.map((p) => (
+            {homeFootwear.map((p) => (
               <ProductCard key={p.id} product={p} />
             ))}
           </div>
         </section>
 
         {/* ========================================================
-            8. WATCHES & ACCESSORIES
+            WATCHES & ACCESSORIES
            ======================================================== */}
         <section className="max-w-7xl mx-auto px-4 sm:px-8">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <span className="text-[10px] tracking-[0.2em] uppercase text-gray-400 font-medium block">
-                CURATED SHOWCASE
-              </span>
-              <h2 className="text-xl sm:text-2xl font-serif font-bold tracking-tight">
-                WATCHES
-              </h2>
-            </div>
-            <div className="flex items-center gap-3">
-              <Link
-                href="#"
-                className="text-xs font-semibold text-gray-600 hover:text-black flex items-center gap-1 tracking-wider uppercase mr-2"
-              >
-                VIEW ALL <ChevronRight className="w-3.5 h-3.5" />
-              </Link>
-              <button
-                aria-label="Previous"
-                className="w-7 h-7 rounded-full border border-gray-200 flex items-center justify-center hover:bg-gray-100 transition"
-              >
-                <ChevronLeft className="w-3.5 h-3.5 text-gray-600" />
-              </button>
-              <button
-                aria-label="Next"
-                className="w-7 h-7 rounded-full border border-gray-200 flex items-center justify-center hover:bg-gray-100 transition"
-              >
-                <ChevronRight className="w-3.5 h-3.5 text-gray-600" />
-              </button>
-            </div>
-          </div>
-
+          <SectionHeader
+            eyebrow="CURATED SHOWCASE"
+            title="WATCHES"
+            showArrows
+          />
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-            {watchesAccessoriesProducts.map((p) => (
+            {homeAccessories.map((p) => (
               <ProductCard key={p.id} product={p} />
             ))}
           </div>
         </section>
 
         {/* ========================================================
-            9. WINTER WEAR
+            WINTER WEAR
            ======================================================== */}
         <section className="max-w-7xl mx-auto px-4 sm:px-8">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <span className="text-[10px] tracking-[0.2em] uppercase text-gray-400 font-medium block">
-                CATALOG GRID
-              </span>
-              <h2 className="text-xl sm:text-2xl font-serif font-bold tracking-tight">
-                WINTER WEAR
-              </h2>
-            </div>
-            <Link
-              href="#"
-              className="text-xs font-semibold text-gray-600 hover:text-black flex items-center gap-1 tracking-wider uppercase"
-            >
-              VIEW ALL <ChevronRight className="w-3.5 h-3.5" />
-            </Link>
-          </div>
-
+          <SectionHeader eyebrow="CATALOG GRID" title="WINTER WEAR" />
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-            {winterWearProducts.map((p) => (
+            {homeWinterWear.map((p) => (
               <ProductCard key={p.id} product={p} />
             ))}
           </div>
         </section>
 
         {/* ========================================================
-            10. PROMO / DISCOUNT CTA BANNER
+            PROMO / DISCOUNT CTA BANNER
            ======================================================== */}
         <section className="max-w-7xl mx-auto px-4 sm:px-8">
-          <div className="bg-[#1C1C1E] text-white rounded-3xl p-8 sm:p-12 relative overflow-hidden flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+          <div className="bg-linear-to-br from-[#1C1C1E] to-[#0a0a0b] text-white rounded-3xl p-8 sm:p-14 relative overflow-hidden flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
+            {/* Decorative glow */}
+            <div className="absolute -top-20 -right-20 w-72 h-72 bg-amber-500/10 rounded-full blur-3xl" />
+
             <div className="space-y-3 z-10 max-w-xl">
-              <span className="text-[11px] text-amber-400 font-semibold tracking-wider flex items-center gap-1">
+              <span className="text-[11px] text-amber-400 font-semibold tracking-wider flex items-center gap-1.5">
                 ⚡ NEW COMER?!?!
               </span>
-              <h3 className="text-2xl sm:text-3xl font-serif font-bold">
+              <h3 className="text-3xl sm:text-4xl font-serif font-bold leading-tight">
                 Grab 20% Off On Your First Order
               </h3>
-              <p className="text-xs text-gray-400">
+              <p className="text-xs text-gray-400 max-w-sm">
                 Limited time promotion across all essential apparel and tech.
               </p>
-              <div className="pt-2">
+              <div className="pt-3">
                 <button
                   onClick={handleCopyCode}
-                  className="bg-zinc-800/80 border border-zinc-700 hover:border-zinc-500 rounded-full px-4 py-2 text-xs flex items-center gap-2 text-gray-300 hover:text-white transition"
+                  className="bg-zinc-800/80 border border-zinc-700 hover:border-zinc-500 rounded-full px-4 py-2.5 text-xs flex items-center gap-2 text-gray-300 hover:text-white transition"
                 >
                   {copied ? (
                     <Check className="w-3.5 h-3.5 text-emerald-400" />
@@ -697,7 +682,7 @@ export default function HomePage() {
             <div className="z-10">
               <Link
                 href="#"
-                className="bg-white text-black text-xs font-semibold px-6 py-3 rounded-full hover:bg-gray-100 flex items-center gap-2 transition"
+                className="bg-white text-black text-xs font-semibold px-7 py-3.5 rounded-full hover:bg-gray-100 flex items-center gap-2 transition-all hover:gap-3"
               >
                 SHOP THE SALE <ArrowRight className="w-3.5 h-3.5" />
               </Link>
@@ -706,7 +691,7 @@ export default function HomePage() {
         </section>
 
         {/* ========================================================
-            11. COMMUNITY FEEDBACK / REVIEWS
+            COMMUNITY FEEDBACK / REVIEWS
            ======================================================== */}
         <section className="max-w-7xl mx-auto px-4 sm:px-8 text-center">
           <span className="text-[10px] tracking-[0.2em] uppercase text-gray-400 font-medium block mb-1">
@@ -717,18 +702,18 @@ export default function HomePage() {
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {customerReviews.map((item) => (
+            {homeReviews.map((item) => (
               <div
                 key={item.id}
-                className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm flex flex-col justify-between text-left"
+                className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between text-left"
               >
                 <div>
-                  <div className="flex gap-1 text-black mb-3">
+                  <div className="flex gap-1 text-amber-400 mb-3">
                     {[...Array(item.rating)].map((_, i) => (
-                      <Star key={i} className="w-3.5 h-3.5 fill-black" />
+                      <Star key={i} className="w-3.5 h-3.5 fill-amber-400" />
                     ))}
                   </div>
-                  <p className="text-xs italic text-gray-700 mb-2">
+                  <p className="text-sm italic text-gray-700 mb-3 leading-relaxed">
                     {item.quote}
                   </p>
                   <p className="text-[10px] text-gray-400">
@@ -738,7 +723,7 @@ export default function HomePage() {
                 </div>
 
                 <div className="flex items-center gap-2.5 mt-6 pt-4 border-t border-gray-50">
-                  <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-[10px] font-bold text-gray-600">
+                  <div className="w-7 h-7 rounded-full bg-gray-900 flex items-center justify-center text-[10px] font-bold text-white">
                     C
                   </div>
                   <div>
@@ -756,11 +741,11 @@ export default function HomePage() {
         </section>
 
         {/* ========================================================
-            12. GET IN TOUCH / CONTACT FORM
+            GET IN TOUCH / CONTACT FORM
            ======================================================== */}
         <section className="max-w-6xl mx-auto px-4 sm:px-8">
           <div className="text-center mb-10">
-            <span className="inline-block text-[10px] text-gray-500 bg-gray-100 px-3 py-1 rounded-full font-medium mb-2">
+            <span className="inline-block text-[10px] text-gray-500 bg-gray-100 px-3 py-1.5 rounded-full font-medium mb-3">
               🎧 24/7 Dedicated Support
             </span>
             <h2 className="text-2xl sm:text-3xl font-serif font-bold">
@@ -771,11 +756,11 @@ export default function HomePage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
             {/* Left: Contact Info */}
-            <div className="md:col-span-5 bg-white border border-gray-100 rounded-2xl p-6 space-y-4">
-              <div className="flex items-center gap-3 pb-3 border-b border-gray-100">
-                <div className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center">
+            <div className="md:col-span-5 bg-gray-50/60 border border-gray-100 rounded-2xl p-6 space-y-4">
+              <div className="flex items-center gap-3 pb-4 border-b border-gray-200/70">
+                <div className="w-9 h-9 rounded-full bg-black text-white flex items-center justify-center shrink-0">
                   <HeadphonesIconCustom />
                 </div>
                 <div>
@@ -786,24 +771,30 @@ export default function HomePage() {
                 </div>
               </div>
 
-              <div className="space-y-3 text-xs">
-                <div className="p-3 bg-gray-50 rounded-lg">
-                  <span className="text-[10px] text-gray-400 block flex items-center gap-1.5">
+              <div className="space-y-2.5 text-xs">
+                <div className="p-3.5 bg-white rounded-xl border border-gray-100">
+                  <span className="text-[10px] text-gray-400 flex items-center gap-1.5 mb-1">
                     <Phone className="w-3 h-3" /> DIRECT HELPLINE
                   </span>
-                  <span className="font-medium text-gray-800">Phone</span>
+                  <span className="font-medium text-gray-800">
+                    +880 1700-000000
+                  </span>
                 </div>
-                <div className="p-3 bg-gray-50 rounded-lg">
-                  <span className="text-[10px] text-gray-400 block flex items-center gap-1.5">
+                <div className="p-3.5 bg-white rounded-xl border border-gray-100">
+                  <span className="text-[10px] text-gray-400 flex items-center gap-1.5 mb-1">
                     <Mail className="w-3 h-3" /> EMAIL ADDRESS
                   </span>
-                  <span className="font-medium text-gray-800">Email</span>
+                  <span className="font-medium text-gray-800">
+                    support@store.com
+                  </span>
                 </div>
-                <div className="p-3 bg-gray-50 rounded-lg">
-                  <span className="text-[10px] text-gray-400 block flex items-center gap-1.5">
+                <div className="p-3.5 bg-white rounded-xl border border-gray-100">
+                  <span className="text-[10px] text-gray-400 flex items-center gap-1.5 mb-1">
                     <MapPin className="w-3 h-3" /> STORE ADDRESS
                   </span>
-                  <span className="font-medium text-gray-800">Address</span>
+                  <span className="font-medium text-gray-800">
+                    Dhaka, Bangladesh
+                  </span>
                 </div>
               </div>
 
@@ -812,10 +803,10 @@ export default function HomePage() {
                   Instant Support
                 </span>
                 <div className="grid grid-cols-2 gap-2">
-                  <button className="flex items-center justify-center gap-1 text-[11px] bg-emerald-50 text-emerald-700 py-2 rounded-lg border border-emerald-100 font-medium hover:bg-emerald-100 transition">
+                  <button className="flex items-center justify-center gap-1.5 text-[11px] bg-emerald-50 text-emerald-700 py-2.5 rounded-lg border border-emerald-100 font-medium hover:bg-emerald-100 transition">
                     WhatsApp
                   </button>
-                  <button className="flex items-center justify-center gap-1 text-[11px] bg-blue-50 text-blue-700 py-2 rounded-lg border border-blue-100 font-medium hover:bg-blue-100 transition">
+                  <button className="flex items-center justify-center gap-1.5 text-[11px] bg-blue-50 text-blue-700 py-2.5 rounded-lg border border-blue-100 font-medium hover:bg-blue-100 transition">
                     Messenger
                   </button>
                 </div>
@@ -823,7 +814,7 @@ export default function HomePage() {
             </div>
 
             {/* Right: Message Form */}
-            <div className="md:col-span-7 bg-white border border-gray-100 rounded-2xl p-6 sm:p-8">
+            <div className="md:col-span-7 bg-white border border-gray-100 rounded-2xl p-6 sm:p-8 shadow-sm">
               <h4 className="text-sm font-semibold mb-1">Send a Message</h4>
               <p className="text-[11px] text-gray-400 mb-6">
                 Fill out the form below and we will get back to you as soon as
@@ -833,64 +824,64 @@ export default function HomePage() {
               <form onSubmit={(e) => e.preventDefault()} className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="text-[10px] font-semibold text-gray-600 block mb-1">
+                    <label className="text-[10px] font-semibold text-gray-600 block mb-1.5">
                       Your Name <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
                       placeholder="e.g. John Doe"
-                      className="w-full text-xs bg-gray-50 border border-gray-200 rounded-lg p-2.5 focus:outline-none focus:border-black"
+                      className="w-full text-xs bg-gray-50 border border-gray-200 rounded-lg p-3 focus:outline-none focus:border-black focus:bg-white transition"
                     />
                   </div>
                   <div>
-                    <label className="text-[10px] font-semibold text-gray-600 block mb-1">
+                    <label className="text-[10px] font-semibold text-gray-600 block mb-1.5">
                       Email Address <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="email"
                       placeholder="e.g. john@example.com"
-                      className="w-full text-xs bg-gray-50 border border-gray-200 rounded-lg p-2.5 focus:outline-none focus:border-black"
+                      className="w-full text-xs bg-gray-50 border border-gray-200 rounded-lg p-3 focus:outline-none focus:border-black focus:bg-white transition"
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="text-[10px] font-semibold text-gray-600 block mb-1">
+                    <label className="text-[10px] font-semibold text-gray-600 block mb-1.5">
                       Mobile Number
                     </label>
                     <input
                       type="text"
                       placeholder="e.g. +880 1700-000000"
-                      className="w-full text-xs bg-gray-50 border border-gray-200 rounded-lg p-2.5 focus:outline-none focus:border-black"
+                      className="w-full text-xs bg-gray-50 border border-gray-200 rounded-lg p-3 focus:outline-none focus:border-black focus:bg-white transition"
                     />
                   </div>
                   <div>
-                    <label className="text-[10px] font-semibold text-gray-600 block mb-1">
+                    <label className="text-[10px] font-semibold text-gray-600 block mb-1.5">
                       Subject / Order ID
                     </label>
                     <input
                       type="text"
                       placeholder="e.g. Order #1234 Inquiry"
-                      className="w-full text-xs bg-gray-50 border border-gray-200 rounded-lg p-2.5 focus:outline-none focus:border-black"
+                      className="w-full text-xs bg-gray-50 border border-gray-200 rounded-lg p-3 focus:outline-none focus:border-black focus:bg-white transition"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="text-[10px] font-semibold text-gray-600 block mb-1">
+                  <label className="text-[10px] font-semibold text-gray-600 block mb-1.5">
                     Message <span className="text-red-500">*</span>
                   </label>
                   <textarea
                     rows={4}
                     placeholder="How can we help you? Describe your inquiry..."
-                    className="w-full text-xs bg-gray-50 border border-gray-200 rounded-lg p-2.5 focus:outline-none focus:border-black resize-none"
+                    className="w-full text-xs bg-gray-50 border border-gray-200 rounded-lg p-3 focus:outline-none focus:border-black focus:bg-white resize-none transition"
                   />
                 </div>
 
                 <button
                   type="submit"
-                  className="w-full bg-black text-white text-xs font-semibold py-3 rounded-lg hover:bg-gray-800 transition flex items-center justify-center gap-2"
+                  className="w-full bg-black text-white text-xs font-semibold py-3.5 rounded-lg hover:bg-gray-800 transition flex items-center justify-center gap-2"
                 >
                   <Send className="w-3.5 h-3.5" /> SEND MESSAGE
                 </button>
@@ -904,14 +895,62 @@ export default function HomePage() {
       <div className="fixed bottom-6 right-6 z-50">
         <button
           aria-label="Chat Support"
-          className="w-12 h-12 bg-black text-white rounded-full shadow-lg flex items-center justify-center hover:scale-105 transition"
+          className="w-[52px] h-[52px] bg-black text-white rounded-full shadow-xl flex items-center justify-center hover:scale-110 active:scale-95 transition-transform"
         >
           <MessageCircle className="w-6 h-6" />
         </button>
       </div>
 
-      {/* 13. Footer Component */}
-      <Footer />
+    </div>
+  );
+}
+
+/* ==========================================
+   Reusable Section Header
+   ========================================== */
+function SectionHeader({
+  eyebrow,
+  title,
+  showArrows,
+}: {
+  eyebrow: string;
+  title: string;
+  showArrows?: boolean;
+}) {
+  return (
+    <div className="flex items-center justify-between mb-6">
+      <div>
+        <span className="text-[10px] tracking-[0.2em] uppercase text-gray-400 font-medium block mb-1">
+          {eyebrow}
+        </span>
+        <h2 className="text-xl sm:text-2xl font-serif font-bold tracking-tight">
+          {title}
+        </h2>
+      </div>
+      <div className="flex items-center gap-3">
+        <Link
+          href="#"
+          className="text-xs font-semibold text-gray-600 hover:text-black flex items-center gap-1 tracking-wider uppercase mr-1 transition"
+        >
+          VIEW ALL <ChevronRight className="w-3.5 h-3.5" />
+        </Link>
+        {showArrows && (
+          <>
+            <button
+              aria-label="Previous"
+              className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center hover:bg-black hover:text-white hover:border-black transition"
+            >
+              <ChevronLeft className="w-3.5 h-3.5" />
+            </button>
+            <button
+              aria-label="Next"
+              className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center hover:bg-black hover:text-white hover:border-black transition"
+            >
+              <ChevronRight className="w-3.5 h-3.5" />
+            </button>
+          </>
+        )}
+      </div>
     </div>
   );
 }

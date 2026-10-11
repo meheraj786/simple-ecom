@@ -1,6 +1,11 @@
 "use client";
 
 import {
+  keepPreviousData,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
+import {
   accountsApi,
   categoriesApi,
   contactMessagesApi,
@@ -30,7 +35,9 @@ import type {
   Review,
   SubCategory,
   User,
+  ProductListParams,
 } from "@/server/types";
+import { DEFAULT_LIST_PARAMS, normalizeListParams } from "@/server/types";
 import { useCrudDetail, useCrudList, useCrudMutations } from "./use-crud";
 
 export function useUsers(params?: ListParams) {
@@ -73,14 +80,28 @@ export function useSubcategoryMutations() {
   return useCrudMutations<SubCategory>(["subcategories"], subcategoriesApi);
 }
 
-export function useProducts(params?: ListParams) {
-  return useCrudList<Product>(["products"], productsApi, params);
+export function useProducts(params: ProductListParams = DEFAULT_LIST_PARAMS) {
+  const pagination = normalizeListParams(params);
+  const filters = { ...params, ...pagination };
+
+  return useQuery({
+    queryKey: ["products", "list", filters],
+    queryFn: () => productsApi.list(filters),
+    placeholderData: keepPreviousData,
+  });
 }
 export function useProduct(id: string | undefined) {
   return useCrudDetail<Product>(["products"], productsApi, id);
 }
 export function useProductMutations() {
-  return useCrudMutations<Product>(["products"], productsApi);
+  const queryClient = useQueryClient();
+  const mutations = useCrudMutations<Product>(["products"], productsApi);
+
+  return {
+    ...mutations,
+    invalidateProducts: () =>
+      queryClient.invalidateQueries({ queryKey: ["products"] }),
+  };
 }
 
 export function useProductVariants(params?: ListParams) {

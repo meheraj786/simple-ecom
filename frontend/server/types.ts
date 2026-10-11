@@ -21,6 +21,18 @@ export type ListParams = {
   limit?: number;
 };
 
+export type ProductListParams = ListParams & {
+  minPrice?: number;
+  maxPrice?: number;
+  categoryIds?: string[];
+  subcategoryIds?: string[];
+  minRating?: number;
+  variantOptions?: Record<string, string[]>;
+  status?: ProductStatus;
+  collections?: string[];
+  sort?: "newest" | "price_asc" | "price_desc";
+};
+
 export type ResolvedListParams = Required<ListParams>;
 
 export const DEFAULT_LIST_PARAMS: ResolvedListParams = {
@@ -97,6 +109,17 @@ export type Product = {
   averageRating: number;
   createdAt: string;
   updatedAt: string;
+  variants?: ProductVariant[];
+  categories?: Array<{
+    id: string;
+    categoryId: string;
+    category: Pick<Category, "id" | "name" | "slug">;
+  }>;
+  subCategories?: Array<{
+    id: string;
+    subCategoryId: string;
+    subCategory: Pick<SubCategory, "id" | "name" | "slug">;
+  }>;
 };
 
 export type ProductVariant = {
