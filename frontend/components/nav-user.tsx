@@ -1,10 +1,8 @@
-"use client"
+"use client";
 
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@/components/ui/avatar"
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,25 +11,45 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from "@/components/ui/sidebar"
-import { EllipsisVerticalIcon, CircleUserRoundIcon, CreditCardIcon, BellIcon, LogOutIcon } from "lucide-react"
+} from "@/components/ui/sidebar";
+import { useLogout } from "@/hooks/use-auth";
+import { EllipsisVerticalIcon, LogOutIcon } from "lucide-react";
 
 export function NavUser({
   user,
 }: {
   user: {
-    name: string
-    email: string
-    avatar: string
-  }
+    name: string;
+    email: string;
+    avatar: string | null;
+  };
 }) {
-  const { isMobile } = useSidebar()
+  const { isMobile } = useSidebar();
+  const router = useRouter();
+  const logout = useLogout();
+  const initials = user.name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase();
+
+  async function handleLogout() {
+    try {
+      await logout.mutateAsync();
+      router.replace("/admin-login");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not log out");
+    }
+  }
+
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -42,8 +60,8 @@ export function NavUser({
             }
           >
             <Avatar className="size-8 rounded-lg grayscale">
-              <AvatarImage src={user.avatar} alt={user.name} />
-              <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+              {user.avatar && <AvatarImage src={user.avatar} alt={user.name} />}
+              <AvatarFallback className="rounded-lg">{initials}</AvatarFallback>
             </Avatar>
             <div className="grid flex-1 text-left text-sm leading-tight">
               <span className="truncate font-medium">{user.name}</span>
@@ -63,8 +81,12 @@ export function NavUser({
               <DropdownMenuLabel className="p-0 font-normal">
                 <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                   <Avatar className="size-8">
-                    <AvatarImage src={user.avatar} alt={user.name} />
-                    <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+                    {user.avatar && (
+                      <AvatarImage src={user.avatar} alt={user.name} />
+                    )}
+                    <AvatarFallback className="rounded-lg">
+                      {initials}
+                    </AvatarFallback>
                   </Avatar>
                   <div className="grid flex-1 text-left text-sm leading-tight">
                     <span className="truncate font-medium">{user.name}</span>
@@ -76,32 +98,17 @@ export function NavUser({
               </DropdownMenuLabel>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <CircleUserRoundIcon
-                />
-                Account
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <CreditCardIcon
-                />
-                Billing
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <BellIcon
-                />
-                Notifications
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <LogOutIcon
-              />
-              Log out
+            <DropdownMenuItem
+              variant="destructive"
+              disabled={logout.isPending}
+              onClick={handleLogout}
+            >
+              <LogOutIcon />
+              {logout.isPending ? "Logging out..." : "Log out"}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>
     </SidebarMenu>
-  )
+  );
 }

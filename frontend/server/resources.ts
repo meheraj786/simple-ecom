@@ -3,6 +3,9 @@ import apiClient from "./api-client";
 import { DEFAULT_LIST_PARAMS, normalizeListParams } from "./types";
 import type {
   Account,
+  AdminProduct,
+  AdminProductInput,
+  AdminOrderDetails,
   Category,
   ContactMessage,
   Division,
@@ -16,6 +19,7 @@ import type {
   SubCategory,
   User,
   ApiResponse,
+  ListParams,
   PaginatedData,
   ProductListParams,
 } from "./types";
@@ -56,6 +60,34 @@ export const productsApi = {
     return response.data.data;
   },
 };
+export const adminProductsApi = {
+  async list(params: ListParams = DEFAULT_LIST_PARAMS) {
+    const response = await apiClient.get<
+      ApiResponse<PaginatedData<AdminProduct>>
+    >("/products/admin", { params: normalizeListParams(params) });
+    return response.data.data;
+  },
+  async get(id: string) {
+    const response = await apiClient.get<ApiResponse<AdminProduct>>(
+      `/products/admin/${id}`,
+    );
+    return response.data.data;
+  },
+  async create(data: AdminProductInput) {
+    const response = await apiClient.post<ApiResponse<AdminProduct>>(
+      "/products/admin",
+      data,
+    );
+    return response.data.data;
+  },
+  async update(id: string, data: AdminProductInput) {
+    const response = await apiClient.patch<ApiResponse<AdminProduct>>(
+      `/products/admin/${id}`,
+      data,
+    );
+    return response.data.data;
+  },
+};
 export const productVariantsApi =
   createCrudApi<ProductVariant>("product-variants");
 export const productCategoriesApi =
@@ -65,6 +97,14 @@ export const productSubcategoriesApi = createCrudApi<ProductSubCategory>(
 );
 export const reviewsApi = createCrudApi<Review>("reviews");
 export const ordersApi = createCrudApi<Order>("orders");
+export const adminOrderDetailsApi = {
+  async get(id: string) {
+    const response = await apiClient.get<ApiResponse<AdminOrderDetails>>(
+      `/orders/${id}/details`,
+    );
+    return response.data.data;
+  },
+};
 export const orderItemsApi = createCrudApi<OrderItem>("order-items");
 export const divisionsApi = createCrudApi<Division>("divisions");
 export const contactMessagesApi =

@@ -3,17 +3,73 @@ import { prisma } from "../db.js";
 import { errorResponse, successResponse } from "../utils/apiResponse.js";
 import {
   OAUTH_STATE_COOKIE,
+  OAUTH_REDIRECT_COOKIE,
   clearAuthCookies,
   createOAuthState,
   getGoogleOAuthClient,
   issueAuthCookies,
   oauthStateCookieOptions,
+  resolveAdminRedirectPath,
 } from "../utils/auth.js";
+import { verifyPassword } from "../utils/password.js";
 
-export const startGoogleOAuth: RequestHandler = (_request, response) => {
+export const adminPasswordLogin: RequestHandler = async (request, response) => {
+  const email =
+    typeof request.body?.email === "string"
+      ? request.body.email.trim().toLowerCase()
+      : "";
+  const password =
+    typeof request.body?.password === "string" ? request.body.password : "";
+
+  if (!email || !password || email.length > 320 || password.length > 1024) {
+    errorResponse(response, 400, "Email and password are required");
+    return;
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { email },
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      role: true,
+      provider: true,
+      avatar: true,
+      createdAt: true,
+      isRegistered: true,
+      password: true,
+    },
+  });
+
+  if (
+    !user ||
+    !user.isRegistered ||
+    user.role !== "ADMIN" ||
+    !user.password ||
+    !(await verifyPassword(password, user.password))
+  ) {
+    errorResponse(response, 401, "Invalid email or password");
+    return;
+  }
+
+  issueAuthCookies(response, user.id);
+  const {
+    isRegistered: _isRegistered,
+    password: _password,
+    ...safeUser
+  } = user;
+  successResponse(response, "Admin signed in", safeUser);
+};
+
+export const startGoogleOAuth: RequestHandler = (request, response) => {
   try {
     const state = createOAuthState();
     response.cookie(OAUTH_STATE_COOKIE, state, oauthStateCookieOptions());
+    response.cookie(
+      OAUTH_REDIRECT_COOKIE,
+      resolveAdminRedirectPath(request.query.redirectTo),
+      oauthStateCookieOptions(),
+    );
 
     const url = getGoogleOAuthClient().generateAuthUrl({
       access_type: "online",
@@ -35,8 +91,10 @@ export const finishGoogleOAuth: RequestHandler = async (request, response) => {
   const state =
     typeof request.query.state === "string" ? request.query.state : "";
   const savedState = request.cookies?.[OAUTH_STATE_COOKIE];
+  const redirectTo = request.cookies?.[OAUTH_REDIRECT_COOKIE];
 
   response.clearCookie(OAUTH_STATE_COOKIE, oauthStateCookieOptions());
+  response.clearCookie(OAUTH_REDIRECT_COOKIE, oauthStateCookieOptions());
 
   if (
     !code ||
@@ -104,8 +162,10 @@ export const finishGoogleOAuth: RequestHandler = async (request, response) => {
     const frontendUrl =
       process.env.FRONTEND_URL ??
       process.env.CLIENT_URL?.split(",")[0]?.trim() ??
-      "http://localhost:5173";
-    response.redirect(`${frontendUrl.replace(/\/$/, "")}/`);
+      "http://localhost:3000";
+    response.redirect(
+      `${frontendUrl.replace(/\/$/, "")}${resolveAdminRedirectPath(redirectTo)}`,
+    );
   } catch {
     errorResponse(response, 401, "Google authentication failed");
   }

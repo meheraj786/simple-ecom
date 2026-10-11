@@ -3,8 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+import { ContactMessageForm } from "@/components/contact-message-form";
 import { useCategories, useProducts, useReviews } from "@/hooks";
 import { toProductCard } from "@/lib/product-view";
 import {
@@ -17,7 +16,6 @@ import {
   Phone,
   Mail,
   MapPin,
-  Send,
   MessageCircle,
 } from "lucide-react";
 import { Product, ProductCard } from "@/components/ProductCard";
@@ -439,8 +437,6 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-white text-gray-900 antialiased selection:bg-black selection:text-white">
-
-
       <main className="space-y-16 sm:space-y-24 pb-20">
         {/* ========================================================
             HERO SECTION
@@ -815,77 +811,7 @@ export default function HomePage() {
 
             {/* Right: Message Form */}
             <div className="md:col-span-7 bg-white border border-gray-100 rounded-2xl p-6 sm:p-8 shadow-sm">
-              <h4 className="text-sm font-semibold mb-1">Send a Message</h4>
-              <p className="text-[11px] text-gray-400 mb-6">
-                Fill out the form below and we will get back to you as soon as
-                possible.
-              </p>
-
-              <form onSubmit={(e) => e.preventDefault()} className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-[10px] font-semibold text-gray-600 block mb-1.5">
-                      Your Name <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="e.g. John Doe"
-                      className="w-full text-xs bg-gray-50 border border-gray-200 rounded-lg p-3 focus:outline-none focus:border-black focus:bg-white transition"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[10px] font-semibold text-gray-600 block mb-1.5">
-                      Email Address <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="email"
-                      placeholder="e.g. john@example.com"
-                      className="w-full text-xs bg-gray-50 border border-gray-200 rounded-lg p-3 focus:outline-none focus:border-black focus:bg-white transition"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-[10px] font-semibold text-gray-600 block mb-1.5">
-                      Mobile Number
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="e.g. +880 1700-000000"
-                      className="w-full text-xs bg-gray-50 border border-gray-200 rounded-lg p-3 focus:outline-none focus:border-black focus:bg-white transition"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[10px] font-semibold text-gray-600 block mb-1.5">
-                      Subject / Order ID
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="e.g. Order #1234 Inquiry"
-                      className="w-full text-xs bg-gray-50 border border-gray-200 rounded-lg p-3 focus:outline-none focus:border-black focus:bg-white transition"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="text-[10px] font-semibold text-gray-600 block mb-1.5">
-                    Message <span className="text-red-500">*</span>
-                  </label>
-                  <textarea
-                    rows={4}
-                    placeholder="How can we help you? Describe your inquiry..."
-                    className="w-full text-xs bg-gray-50 border border-gray-200 rounded-lg p-3 focus:outline-none focus:border-black focus:bg-white resize-none transition"
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  className="w-full bg-black text-white text-xs font-semibold py-3.5 rounded-lg hover:bg-gray-800 transition flex items-center justify-center gap-2"
-                >
-                  <Send className="w-3.5 h-3.5" /> SEND MESSAGE
-                </button>
-              </form>
+              <ContactMessageForm />
             </div>
           </div>
         </section>
@@ -900,7 +826,6 @@ export default function HomePage() {
           <MessageCircle className="w-6 h-6" />
         </button>
       </div>
-
     </div>
   );
 }

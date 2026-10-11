@@ -1,7 +1,12 @@
 import type { RequestHandler } from "express";
 import { errorResponse, successResponse } from "../../utils/apiResponse.js";
 import { createCrudController } from "../crud/crud.controller.js";
-import { orderCrudService, placeOrder, trackOrder } from "./order.service.js";
+import {
+  getAdminOrderDetails as findAdminOrderDetails,
+  orderCrudService,
+  placeOrder,
+  trackOrder,
+} from "./order.service.js";
 
 export const orderCrudController = createCrudController(
   orderCrudService,
@@ -90,4 +95,23 @@ export const getOrderTracking: RequestHandler = async (request, response) => {
     return;
   }
   successResponse(response, "Order tracking details", order);
+};
+
+export const getAdminOrderDetails: RequestHandler = async (
+  request,
+  response,
+) => {
+  const id = request.params.id;
+  if (typeof id !== "string") {
+    errorResponse(response, 400, "A valid order id is required");
+    return;
+  }
+
+  const order = await findAdminOrderDetails(id);
+  if (!order) {
+    errorResponse(response, 404, "Order not found");
+    return;
+  }
+
+  successResponse(response, "Order details", order);
 };

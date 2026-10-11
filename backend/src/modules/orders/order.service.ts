@@ -4,6 +4,35 @@ import { createCrudService } from "../crud/crud.service.js";
 
 export const orderCrudService = createCrudService("order", { path: "orders" });
 
+export function getAdminOrderDetails(id: string) {
+  return prisma.order.findUnique({
+    where: { id },
+    include: {
+      division: {
+        select: { id: true, name: true, deliveryCharge: true },
+      },
+      items: {
+        include: {
+          product: {
+            select: { id: true, name: true, slug: true, baseImage: true },
+          },
+          variant: {
+            select: {
+              id: true,
+              sku: true,
+              price: true,
+              compareAtPrice: true,
+              images: true,
+              options: true,
+              isActive: true,
+            },
+          },
+        },
+      },
+    },
+  });
+}
+
 export type PlaceOrderInput = {
   customerName: string;
   customerEmail: string;

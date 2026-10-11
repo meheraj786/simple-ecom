@@ -4,10 +4,33 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import apiClient from "@/server/api-client";
 import type { ApiResponse, User } from "@/server/types";
 
-export function startGoogleLogin() {
+export type AdminLoginCredentials = {
+  email: string;
+  password: string;
+};
+
+export function useAdminLogin() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (credentials: AdminLoginCredentials) => {
+      const response = await apiClient.post<ApiResponse<User>>(
+        "/auth/admin/login",
+        credentials,
+      );
+      return response.data.data;
+    },
+    onSuccess: async (user) => {
+      queryClient.setQueryData(["auth", "me"], user);
+      await queryClient.invalidateQueries({ queryKey: ["auth"] });
+    },
+  });
+}
+
+export function startGoogleLogin(redirectTo = "/") {
   // Google OAuth starts on the backend origin, outside Next.js routing.
   // eslint-disable-next-line @next/next/no-location-assign-relative-destination
-  window.location.href = `${apiClient.defaults.baseURL}/auth/google`;
+  window.location.href = `${apiClient.defaults.baseURL}/auth/google?redirectTo=${encodeURIComponent(redirectTo)}`;
 }
 
 export function useCurrentUser() {

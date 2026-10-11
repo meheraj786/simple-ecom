@@ -14,11 +14,11 @@ export default function Footer() {
     { name: "Women", href: "#" },
     { name: "Fashion Accessories", href: "#" },
     { name: "Ethnic & Traditional", href: "#" },
-    { name: "About Our Story", href: "#" },
+    { name: "About Our Story", href: "/about" },
   ];
 
   const subLinks = [
-    { name: "Contact Support", href: "#" },
+    { name: "Contact Support", href: "/contact" },
     { name: "Customer Dashboard", href: "#" },
     { name: "My Order History", href: "#" },
     { name: "My Wishlist", href: "#" },

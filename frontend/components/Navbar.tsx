@@ -26,6 +26,7 @@ export default function Navbar() {
   const navLinks = [
     { name: "Home", href: "/" },
     { name: "Shop", href: "/shop" },
+    { name: "About", href: "/about" },
     { name: "New Arrivals", href: "#" },
     { name: "Featured Items", href: "#" },
     { name: "Men", href: "#", hasDropdown: true },
@@ -53,7 +54,7 @@ export default function Navbar() {
           </div>
           <div className="flex items-center gap-6">
             <Link
-              href="#"
+              href="/contact"
               className="flex items-center gap-1.5 hover:text-black transition-colors"
             >
               <Truck className="w-3.5 h-3.5" />
@@ -248,7 +249,7 @@ export default function Navbar() {
 
           <div className="px-5 py-4 border-t border-gray-100 space-y-3">
             <Link
-              href="#"
+              href="/contact"
               className="flex items-center gap-2 text-xs text-gray-600"
             >
               <Truck className="w-3.5 h-3.5" /> Track Order

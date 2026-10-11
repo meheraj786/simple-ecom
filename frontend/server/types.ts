@@ -62,7 +62,7 @@ export type ProductStatus =
   | "UPCOMING"
   | "COMING_SOON";
 
-export type VariantOption = { name: string; value: string };
+export type VariantOption = { name: string; value: string; image?: string };
 
 export type User = {
   id: string;
@@ -120,6 +120,38 @@ export type Product = {
     subCategoryId: string;
     subCategory: Pick<SubCategory, "id" | "name" | "slug">;
   }>;
+};
+
+export type AdminProduct = Product & {
+  variants: ProductVariant[];
+  categories: NonNullable<Product["categories"]>;
+  subCategories: NonNullable<Product["subCategories"]>;
+};
+
+export type AdminProductVariantInput = {
+  id?: string;
+  sku: string;
+  price: string;
+  compareAtPrice: string | null;
+  images: string[];
+  options: Array<{ name: string; value: string; image: string }>;
+  isActive: boolean;
+};
+
+export type AdminProductInput = {
+  name: string;
+  slug: string;
+  sku: string | null;
+  baseImage: string | null;
+  description: string | null;
+  isActive: boolean;
+  isNew: boolean;
+  isBestSeller: boolean;
+  isFeatured: boolean;
+  status: ProductStatus;
+  categoryIds: string[];
+  subcategoryIds: string[];
+  variants: AdminProductVariantInput[];
 };
 
 export type ProductVariant = {
@@ -194,6 +226,25 @@ export type OrderItem = {
   variantSnapshot: unknown;
   createdAt: string;
   updatedAt: string;
+};
+
+export type AdminOrderDetails = Order & {
+  division: Pick<Division, "id" | "name" | "deliveryCharge">;
+  items: Array<
+    OrderItem & {
+      product: Pick<Product, "id" | "name" | "slug" | "baseImage">;
+      variant: Pick<
+        ProductVariant,
+        | "id"
+        | "sku"
+        | "price"
+        | "compareAtPrice"
+        | "images"
+        | "options"
+        | "isActive"
+      >;
+    }
+  >;
 };
 
 export type Division = {

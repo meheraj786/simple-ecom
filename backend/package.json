@@ -10,6 +10,7 @@
     "start": "node dist/server.js",
     "typecheck": "tsc --noEmit",
     "seed:vendor": "tsx prisma/seed.ts",
+    "seed:catalog": "tsx prisma/seed-catalog.ts",
     "test": "tsx --test src/app.test.ts"
   },
   "keywords": [],

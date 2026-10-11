@@ -2,11 +2,14 @@
 
 import {
   keepPreviousData,
+  useMutation,
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
 import {
   accountsApi,
+  adminOrderDetailsApi,
+  adminProductsApi,
   categoriesApi,
   contactMessagesApi,
   divisionsApi,
@@ -22,6 +25,7 @@ import {
 } from "@/server/resources";
 import type {
   Account,
+  AdminProductInput,
   Category,
   ContactMessage,
   Division,
@@ -89,6 +93,45 @@ export function useProducts(params: ProductListParams = DEFAULT_LIST_PARAMS) {
     queryFn: () => productsApi.list(filters),
     placeholderData: keepPreviousData,
   });
+}
+export function useAdminProducts(params: ListParams = DEFAULT_LIST_PARAMS) {
+  const pagination = normalizeListParams(params);
+  return useQuery({
+    queryKey: ["products", "admin-list", pagination],
+    queryFn: () => adminProductsApi.list(pagination),
+    placeholderData: keepPreviousData,
+  });
+}
+export function useAdminProduct(id: string | undefined) {
+  return useQuery({
+    queryKey: ["products", "admin-detail", id],
+    queryFn: () => adminProductsApi.get(id!),
+    enabled: Boolean(id),
+  });
+}
+export function useAdminProductMutations() {
+  const queryClient = useQueryClient();
+  const invalidate = () =>
+    queryClient.invalidateQueries({ queryKey: ["products"] });
+  const create = useMutation({
+    mutationFn: (data: AdminProductInput) => adminProductsApi.create(data),
+    onSuccess: invalidate,
+  });
+  const update = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: AdminProductInput }) =>
+      adminProductsApi.update(id, data),
+    onSuccess: (_product, { id }) => {
+      void invalidate();
+      void queryClient.invalidateQueries({
+        queryKey: ["products", "admin-detail", id],
+      });
+    },
+  });
+  const remove = useMutation({
+    mutationFn: (id: string) => productsApi.remove(id),
+    onSuccess: invalidate,
+  });
+  return { create, update, remove };
 }
 export function useProduct(id: string | undefined) {
   return useCrudDetail<Product>(["products"], productsApi, id);
@@ -182,6 +225,13 @@ export function useOrders(params?: ListParams) {
 }
 export function useOrder(id: string | undefined) {
   return useCrudDetail<Order>(["orders"], ordersApi, id);
+}
+export function useAdminOrderDetails(id: string | undefined) {
+  return useQuery({
+    queryKey: ["orders", "admin-detail", id],
+    queryFn: () => adminOrderDetailsApi.get(id!),
+    enabled: Boolean(id),
+  });
 }
 export function useOrderMutations() {
   const { update, replace, remove } = useCrudMutations<Order>(

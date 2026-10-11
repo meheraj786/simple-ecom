@@ -6,7 +6,31 @@ import jwt from "jsonwebtoken";
 export const AUTH_COOKIE = "token";
 export const CSRF_COOKIE = "csrf_token";
 export const OAUTH_STATE_COOKIE = "google_oauth_state";
+export const OAUTH_REDIRECT_COOKIE = "google_oauth_redirect";
 export const AUTH_TOKEN_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
+
+export function resolveAdminRedirectPath(value: unknown): string {
+  if (typeof value !== "string") {
+    return "/";
+  }
+
+  try {
+    const url = new URL(value, "https://ecom.invalid");
+    const isDashboardPath =
+      url.pathname === "/admin" ||
+      url.pathname.startsWith("/admin/") ||
+      url.pathname === "/dashboard" ||
+      url.pathname.startsWith("/dashboard/");
+
+    if (url.origin !== "https://ecom.invalid" || !isDashboardPath) {
+      return "/";
+    }
+
+    return `${url.pathname}${url.search}${url.hash}`;
+  } catch {
+    return "/";
+  }
+}
 
 export function getGoogleOAuthClient(): OAuth2Client {
   const clientId = process.env.GOOGLE_CLIENT_ID;
