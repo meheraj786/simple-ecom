@@ -76,7 +76,7 @@ export default function MessagesPage() {
   const [exporting, setExporting] = useState(false);
 
   const messagesQuery = useContactMessages({ page, limit });
-  const { remove } = useContactMessageMutations();
+  const { update, remove } = useContactMessageMutations();
   const messages = messagesQuery.data?.items ?? [];
   const pagination = {
     page,
@@ -84,6 +84,22 @@ export default function MessagesPage() {
     total: messagesQuery.data?.pagination.total ?? 0,
     pages: messagesQuery.data?.pagination.pages ?? 0,
   };
+
+  async function openMessage(message: ContactMessage) {
+    setSelectedMessage(message);
+    if (message.isRead) return;
+    try {
+      await update.mutateAsync({
+        id: message.id,
+        data: { isRead: true },
+      });
+      setSelectedMessage((current) =>
+        current?.id === message.id ? { ...current, isRead: true } : current,
+      );
+    } catch (error) {
+      toast.error(getErrorMessage(error));
+    }
+  }
 
   const columns: ServerDataTableColumn<ContactMessage>[] = [
     {
@@ -141,7 +157,7 @@ export default function MessagesPage() {
             variant="ghost"
             size="icon-sm"
             aria-label={`Read message from ${message.name}`}
-            onClick={() => setSelectedMessage(message)}
+            onClick={() => void openMessage(message)}
           >
             <Eye />
           </Button>

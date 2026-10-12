@@ -22,6 +22,8 @@ import type {
   ListParams,
   PaginatedData,
   ProductListParams,
+  TrackOrderInput,
+  OrderTracking,
 } from "./types";
 
 export const usersApi = createCrudApi<User>("users");
@@ -97,6 +99,15 @@ export const productSubcategoriesApi = createCrudApi<ProductSubCategory>(
 );
 export const reviewsApi = createCrudApi<Review>("reviews");
 export const ordersApi = createCrudApi<Order>("orders");
+export const orderTrackingApi = {
+  async find(input: TrackOrderInput) {
+    const response = await apiClient.post<ApiResponse<OrderTracking[]>>(
+      "/orders/track",
+      input,
+    );
+    return response.data.data;
+  },
+};
 export const adminOrderDetailsApi = {
   async get(id: string) {
     const response = await apiClient.get<ApiResponse<AdminOrderDetails>>(

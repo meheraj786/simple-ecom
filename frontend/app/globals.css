@@ -117,3 +117,36 @@
   --sidebar-ring: oklch(0.556 0 0);
 }
 
+@page {
+  size: A4;
+  margin: 0;
+}
+
+@media print {
+  body.invoice-print-mode * {
+    visibility: hidden !important;
+  }
+
+  body.invoice-print-mode #invoice-print-root,
+  body.invoice-print-mode #invoice-print-root * {
+    visibility: visible !important;
+  }
+
+  body.invoice-print-mode #invoice-print-root {
+    position: fixed;
+    inset: 0 auto auto 0;
+    width: 210mm;
+    min-height: 297mm;
+    max-width: none;
+    padding: 14mm;
+    overflow: visible;
+    background: white;
+    color: black;
+    box-shadow: none;
+  }
+
+  body.invoice-print-mode .invoice-dialog-footer,
+  body.invoice-print-mode [data-slot="dialog-close"] {
+    display: none !important;
+  }
+}

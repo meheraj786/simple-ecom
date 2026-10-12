@@ -11,6 +11,7 @@ import {
   Eye,
   LoaderCircle,
   Pencil,
+  Printer,
   Trash2,
 } from "lucide-react";
 
@@ -31,6 +32,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import Logo from "@/components/Logo";
 import {
   Select,
   SelectContent,
@@ -40,8 +42,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useOrderMutations, useOrders } from "@/hooks/use-resources";
-import { ordersApi } from "@/server/resources";
-import type { Order } from "@/server/types";
+import { adminOrderDetailsApi, ordersApi } from "@/server/resources";
+import type { AdminOrderDetails, Order } from "@/server/types";
 
 const orderStatuses = [
   "PENDING",
@@ -287,6 +289,10 @@ export default function OrdersPage() {
   const [deleteTarget, setDeleteTarget] = useState<Order | null>(null);
   const [exporting, setExporting] = useState(false);
   const [updatingStatusId, setUpdatingStatusId] = useState<string | null>(null);
+  const [invoiceOrder, setInvoiceOrder] = useState<AdminOrderDetails | null>(
+    null,
+  );
+  const [invoiceLoadingId, setInvoiceLoadingId] = useState<string | null>(null);
 
   const ordersQuery = useOrders({ page, limit });
   const mutations = useOrderMutations();
@@ -312,6 +318,24 @@ export default function OrdersPage() {
     } finally {
       setUpdatingStatusId(null);
     }
+  }
+
+  async function previewInvoice(order: Order) {
+    setInvoiceLoadingId(order.id);
+    try {
+      setInvoiceOrder(await adminOrderDetailsApi.get(order.id));
+    } catch (error) {
+      toast.error(getErrorMessage(error));
+    } finally {
+      setInvoiceLoadingId(null);
+    }
+  }
+
+  function printInvoice() {
+    document.body.classList.add("invoice-print-mode");
+    const cleanup = () => document.body.classList.remove("invoice-print-mode");
+    window.addEventListener("afterprint", cleanup, { once: true });
+    window.print();
   }
 
   const columns: ServerDataTableColumn<Order>[] = [
@@ -410,9 +434,22 @@ export default function OrdersPage() {
     {
       id: "actions",
       header: <span className="sr-only">Actions</span>,
-      className: "w-28 text-right",
+      className: "w-36 text-right",
       cell: (order) => (
         <div className="flex justify-end gap-1">
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            aria-label={`Preview invoice for order ${order.id}`}
+            disabled={invoiceLoadingId === order.id}
+            onClick={() => void previewInvoice(order)}
+          >
+            {invoiceLoadingId === order.id ? (
+              <LoaderCircle className="animate-spin" />
+            ) : (
+              <Printer />
+            )}
+          </Button>
           <Button
             variant="ghost"
             size="icon-sm"
@@ -568,6 +605,194 @@ export default function OrdersPage() {
         }}
         onSave={saveOrder}
       />
+
+      <Dialog
+        open={invoiceOrder !== null}
+        onOpenChange={(open) => {
+          if (!open) setInvoiceOrder(null);
+        }}
+      >
+        <DialogContent className="max-h-[95vh] max-w-[calc(100%-1rem)] overflow-y-auto p-0 sm:max-w-4xl">
+          {invoiceOrder && (
+            <>
+              <div
+                id="invoice-print-root"
+                className="invoice-paper mx-auto w-full max-w-[210mm] bg-white p-5 text-gray-950 sm:p-10"
+              >
+                <header className="flex flex-wrap items-start justify-between gap-6 border-b-2 border-gray-900 pb-6">
+                  <div className="grid gap-2">
+                    <Logo />
+                    <p className="text-xs text-gray-500">
+                      Official order invoice
+                    </p>
+                    <p className="text-xs leading-5 text-gray-500">
+                      support@store.com
+                      <br />
+                      +880 1700-000000 · Dhaka, Bangladesh
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-3xl font-semibold tracking-tight">
+                      INVOICE
+                    </p>
+                    <p className="mt-2 text-sm font-medium">
+                      #{invoiceOrder.id.slice(-8).toUpperCase()}
+                    </p>
+                    <p className="mt-1 text-xs text-gray-500">
+                      {formatDate(invoiceOrder.createdAt)}
+                    </p>
+                  </div>
+                </header>
+
+                <section className="grid gap-6 border-b border-gray-200 py-6 sm:grid-cols-2">
+                  <div className="grid content-start gap-2">
+                    <h2 className="text-xs font-semibold uppercase text-gray-500">
+                      Billed to
+                    </h2>
+                    <p className="font-semibold">{invoiceOrder.customerName}</p>
+                    <p className="text-sm text-gray-700">
+                      {invoiceOrder.customerEmail}
+                    </p>
+                    <p className="text-sm text-gray-700">
+                      {invoiceOrder.customerPhone}
+                    </p>
+                  </div>
+                  <div className="grid content-start gap-2 sm:justify-items-end sm:text-right">
+                    <h2 className="text-xs font-semibold uppercase text-gray-500">
+                      Ship to
+                    </h2>
+                    <p className="max-w-sm text-sm leading-6 text-gray-800">
+                      {invoiceOrder.shippingAddress}
+                      <br />
+                      {invoiceOrder.city}
+                      {invoiceOrder.zipCode ? `, ${invoiceOrder.zipCode}` : ""}
+                      <br />
+                      {invoiceOrder.division.name}
+                    </p>
+                  </div>
+                </section>
+
+                <div className="overflow-x-auto py-6">
+                  <table className="w-full min-w-[560px] border-collapse text-left text-sm">
+                    <thead>
+                      <tr className="border-b border-gray-300 text-xs uppercase text-gray-500">
+                        <th className="py-3 pr-3 font-semibold">Item</th>
+                        <th className="px-3 py-3 text-right font-semibold">
+                          Qty
+                        </th>
+                        <th className="px-3 py-3 text-right font-semibold">
+                          Unit price
+                        </th>
+                        <th className="py-3 pl-3 text-right font-semibold">
+                          Amount
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {invoiceOrder.items.map((item) => {
+                        const lineTotal = Number(item.price) * item.quantity;
+                        const options = item.variant.options
+                          .map((option) => `${option.name}: ${option.value}`)
+                          .join(" · ");
+                        return (
+                          <tr
+                            key={item.id}
+                            className="border-b border-gray-100 align-top"
+                          >
+                            <td className="py-4 pr-3">
+                              <p className="font-medium">{item.product.name}</p>
+                              <p className="mt-1 text-xs text-gray-500">
+                                SKU: {item.variant.sku}
+                              </p>
+                              {options && (
+                                <p className="mt-1 text-xs text-gray-500">
+                                  {options}
+                                </p>
+                              )}
+                            </td>
+                            <td className="px-3 py-4 text-right">
+                              {item.quantity}
+                            </td>
+                            <td className="px-3 py-4 text-right">
+                              ৳{formatAmount(item.price)}
+                            </td>
+                            <td className="py-4 pl-3 text-right font-medium">
+                              ৳{formatAmount(lineTotal.toFixed(2))}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+
+                <section className="ml-auto grid w-full max-w-sm gap-3 border-t border-gray-200 pt-5 text-sm">
+                  <div className="flex justify-between gap-4">
+                    <span className="text-gray-600">Subtotal</span>
+                    <span>
+                      ৳
+                      {formatAmount(
+                        invoiceOrder.items
+                          .reduce(
+                            (sum, item) =>
+                              sum + Number(item.price) * item.quantity,
+                            0,
+                          )
+                          .toFixed(2),
+                      )}
+                    </span>
+                  </div>
+                  <div className="flex justify-between gap-4">
+                    <span className="text-gray-600">Delivery charge</span>
+                    <span>
+                      ৳
+                      {formatAmount(
+                        String(invoiceOrder.division.deliveryCharge),
+                      )}
+                    </span>
+                  </div>
+                  {Number(invoiceOrder.discountAmount) > 0 && (
+                    <div className="flex justify-between gap-4">
+                      <span className="text-gray-600">
+                        Discount
+                        {invoiceOrder.couponCode
+                          ? ` (${invoiceOrder.couponCode})`
+                          : ""}
+                      </span>
+                      <span>-৳{formatAmount(invoiceOrder.discountAmount)}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between gap-4 border-t border-gray-900 pt-3 text-base font-semibold">
+                    <span>Total</span>
+                    <span>৳{formatAmount(invoiceOrder.totalAmount)}</span>
+                  </div>
+                </section>
+
+                <footer className="mt-8 flex flex-wrap justify-between gap-3 border-t border-gray-200 pt-4 text-xs text-gray-500">
+                  <span>
+                    Payment: {invoiceOrder.paymentMethod.replaceAll("_", " ")} ·{" "}
+                    {invoiceOrder.paymentStatus.replaceAll("_", " ")}
+                  </span>
+                  <span>
+                    Order status: {invoiceOrder.status.replaceAll("_", " ")}
+                  </span>
+                </footer>
+              </div>
+              <DialogFooter className="invoice-dialog-footer">
+                <DialogClose
+                  render={<Button type="button" variant="outline" />}
+                >
+                  Close
+                </DialogClose>
+                <Button type="button" onClick={printInvoice}>
+                  <Printer />
+                  Print invoice
+                </Button>
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
 
       <Dialog
         open={deleteTarget !== null}

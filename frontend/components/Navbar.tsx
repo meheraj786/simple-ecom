@@ -4,8 +4,6 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import {
   Search,
-  User,
-  Heart,
   ShoppingBag,
   Truck,
   HeadphonesIcon,
@@ -54,7 +52,7 @@ export default function Navbar() {
           </div>
           <div className="flex items-center gap-6">
             <Link
-              href="/contact"
+              href="/order-track"
               className="flex items-center gap-1.5 hover:text-black transition-colors"
             >
               <Truck className="w-3.5 h-3.5" />
@@ -129,21 +127,6 @@ export default function Navbar() {
             className="p-2 hover:bg-gray-50 rounded-full transition"
           >
             <Search className="w-4 h-4" />
-          </button>
-          <button
-            aria-label="Account"
-            className="hidden sm:flex p-2 hover:bg-gray-50 rounded-full transition"
-          >
-            <User className="w-4 h-4" />
-          </button>
-          <button
-            aria-label="Wishlist"
-            className="relative p-2 hover:bg-gray-50 rounded-full transition"
-          >
-            <Heart className="w-4 h-4" />
-            <span className="absolute top-0.5 right-0.5 text-[9px] bg-black text-white w-3.5 h-3.5 rounded-full flex items-center justify-center font-bold">
-              0
-            </span>
           </button>
           <Link
             href="/cart"
@@ -249,7 +232,7 @@ export default function Navbar() {
 
           <div className="px-5 py-4 border-t border-gray-100 space-y-3">
             <Link
-              href="/contact"
+              href="/order-track"
               className="flex items-center gap-2 text-xs text-gray-600"
             >
               <Truck className="w-3.5 h-3.5" /> Track Order

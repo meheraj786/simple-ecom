@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ContactMessageForm } from "@/components/contact-message-form";
 import { useCategories, useProducts, useReviews } from "@/hooks";
 import { toProductCard } from "@/lib/product-view";
@@ -338,6 +338,7 @@ const customerReviews: Testimonial[] = [
 // ==========================================
 export default function HomePage() {
   const [copied, setCopied] = useState(false);
+  const [heroIndex, setHeroIndex] = useState(0);
   const categoriesQuery = useCategories({ page: 1, limit: 100 });
   const featuredQuery = useProducts({
     page: 1,
@@ -356,6 +357,40 @@ export default function HomePage() {
   });
   const catalogQuery = useProducts({ page: 1, limit: 100 });
   const reviewsQuery = useReviews({ page: 1, limit: 3 });
+
+  const heroSlides = [
+    {
+      image:
+        "https://images.unsplash.com/photo-1490114538077-0a7f8cb49891?auto=format&fit=crop&w=1920&q=85",
+      alt: "Contemporary menswear collection",
+      eyebrow: "THE EVERYDAY EDIT",
+      title: "Made for\nthe everyday.",
+      description: "Considered essentials for wherever the day takes you.",
+    },
+    {
+      image:
+        "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=1920&q=85",
+      alt: "New season fashion collection",
+      eyebrow: "NEW SEASON",
+      title: "A fresh point\nof view.",
+      description: "Find the pieces that make getting dressed feel easy.",
+    },
+    {
+      image:
+        "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1920&q=85",
+      alt: "Inside the E-Com fashion store",
+      eyebrow: "CURATED FOR YOU",
+      title: "Good things\nare in store.",
+      description: "Explore thoughtful finds across the whole collection.",
+    },
+  ];
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setHeroIndex((index) => (index + 1) % heroSlides.length);
+    }, 6000);
+    return () => window.clearInterval(timer);
+  }, [heroSlides.length]);
 
   const apiCategories = categoriesQuery.data?.items ?? [];
   const homeCategories = categoriesQuery.isPending
@@ -441,57 +476,81 @@ export default function HomePage() {
         {/* ========================================================
             HERO SECTION
            ======================================================== */}
-        <section className="relative w-full h-140 md:h-160 bg-[#E8E6E1] overflow-hidden">
+        <section
+          aria-label="Featured collections"
+          className="group relative h-[520px] w-full overflow-hidden bg-[#26352f] md:h-[640px]"
+        >
           <Image
-            src="https://images.unsplash.com/photo-1490114538077-0a7f8cb49891?auto=format&fit=crop&w=1920&q=80"
-            alt="The Men Edition"
+            key={heroSlides[heroIndex].image}
+            src={heroSlides[heroIndex].image}
+            alt={heroSlides[heroIndex].alt}
             fill
             priority
-            className="object-cover object-right md:object-center scale-105"
+            sizes="100vw"
+            className="animate-in fade-in object-cover object-center duration-700"
           />
-          <div className="absolute inset-0 bg-linear-to-r from-black/60 via-black/25 to-transparent" />
+          <div className="absolute inset-0 bg-linear-to-r from-black/70 via-black/30 to-black/5" />
 
-          <div className="relative max-w-7xl mx-auto h-full flex items-center px-6 sm:px-8">
-            <div className="max-w-md text-white space-y-5">
-              <span className="inline-flex items-center gap-2 text-[10px] tracking-[0.25em] uppercase font-semibold text-gray-200">
-                <span className="w-6 h-px bg-amber-400" />
-                FEATURED CATEGORY SPOTLIGHT
+          <div className="relative mx-auto flex h-full max-w-7xl items-center px-6 sm:px-8">
+            <div className="max-w-lg space-y-5 text-white">
+              <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase text-white/80">
+                <span className="h-px w-7 bg-amber-400" />
+                {heroSlides[heroIndex].eyebrow}
               </span>
-              <h1 className="text-5xl sm:text-7xl font-serif tracking-tight leading-[0.95]">
-                The Men <br />
-                <span className="italic font-light">Edition.</span>
+              <h1 className="whitespace-pre-line font-serif text-5xl font-semibold leading-[1.02] sm:text-7xl">
+                {heroSlides[heroIndex].title}
               </h1>
-              <p className="text-xs sm:text-sm text-gray-300 font-light leading-relaxed max-w-xs">
-                Curated lifestyle pieces built with precision and durability.
+              <p className="max-w-sm text-sm leading-6 text-white/80">
+                {heroSlides[heroIndex].description}
               </p>
-              <div className="flex items-center gap-4 pt-1">
+              <div className="flex items-center gap-4 pt-2">
                 <Link
-                  href="#"
-                  className="inline-flex items-center gap-2 bg-white text-black text-xs font-semibold px-6 py-3.5 rounded-full hover:bg-gray-100 transition-all hover:gap-3"
+                  href="/shop"
+                  className="inline-flex items-center gap-2 bg-white px-6 py-3.5 text-xs font-semibold text-black transition-colors hover:bg-gray-100"
                 >
-                  SHOP MEN NOW
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </Link>
-                <Link
-                  href="#"
-                  className="text-xs font-semibold text-white/90 hover:text-white underline underline-offset-4"
-                >
-                  View Lookbook
+                  SHOP COLLECTION
+                  <ArrowRight className="size-4" />
                 </Link>
               </div>
             </div>
           </div>
 
-          {/* Scroll cue / slide dots */}
-          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-1.5">
-            {[0, 1, 2].map((i) => (
-              <span
-                key={i}
-                className={`h-1 rounded-full transition-all ${
-                  i === 0 ? "w-6 bg-white" : "w-1.5 bg-white/40"
-                }`}
-              />
-            ))}
+          <div className="absolute inset-x-0 bottom-6 mx-auto flex max-w-7xl items-center justify-between px-6 sm:px-8">
+            <button
+              type="button"
+              aria-label="Previous banner"
+              onClick={() =>
+                setHeroIndex(
+                  (index) =>
+                    (index + heroSlides.length - 1) % heroSlides.length,
+                )
+              }
+              className="grid size-10 place-items-center border border-white/50 text-white transition hover:bg-white hover:text-black"
+            >
+              <ChevronLeft className="size-5" />
+            </button>
+            <div className="flex items-center gap-2" aria-label="Choose banner">
+              {heroSlides.map((slide, index) => (
+                <button
+                  key={slide.eyebrow}
+                  type="button"
+                  aria-label={`Show banner ${index + 1}`}
+                  aria-current={heroIndex === index ? "true" : undefined}
+                  onClick={() => setHeroIndex(index)}
+                  className={`h-1.5 transition-all ${heroIndex === index ? "w-8 bg-white" : "w-3 bg-white/50 hover:bg-white/80"}`}
+                />
+              ))}
+            </div>
+            <button
+              type="button"
+              aria-label="Next banner"
+              onClick={() =>
+                setHeroIndex((index) => (index + 1) % heroSlides.length)
+              }
+              className="grid size-10 place-items-center border border-white/50 text-white transition hover:bg-white hover:text-black"
+            >
+              <ChevronRight className="size-5" />
+            </button>
           </div>
         </section>
 
@@ -503,8 +562,9 @@ export default function HomePage() {
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {homeCategories.map((cat) => (
-              <div
+              <Link
                 key={cat.id}
+                href={`/shop?categories=${encodeURIComponent(cat.id)}`}
                 className="group relative aspect-3/4 rounded-2xl overflow-hidden bg-gray-100 cursor-pointer shadow-sm hover:shadow-xl transition-shadow duration-300"
               >
                 <Image
@@ -525,7 +585,7 @@ export default function HomePage() {
                     EXPLORE <ArrowRight className="w-2.5 h-2.5" />
                   </span>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         </section>
@@ -538,8 +598,9 @@ export default function HomePage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {homeCuratedCategories.map((cat) => (
-              <div
+              <Link
                 key={cat.id}
+                href={`/shop?categories=${encodeURIComponent(cat.id)}`}
                 className="group relative h-52 sm:h-72 rounded-2xl overflow-hidden bg-gray-100 cursor-pointer"
               >
                 <Image
@@ -557,7 +618,7 @@ export default function HomePage() {
                     SHOP COLLECTION <ArrowRight className="w-3 h-3" />
                   </span>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         </section>

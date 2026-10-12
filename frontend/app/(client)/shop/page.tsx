@@ -11,32 +11,13 @@ import {
   Search,
   RotateCcw,
 } from "lucide-react";
-import {
-  useCategories,
-  useProductVariants,
-  useProducts,
-  useSubcategories,
-} from "@/hooks";
+import { useCategories, useProducts, useSubcategories } from "@/hooks";
 import { ProductCard } from "@/components/ProductCard";
 
 const COLLECTIONS_LIST = [
   { label: "New arrivals", value: "new-arrivals" },
   { label: "Best sellers", value: "best-sellers" },
   { label: "Featured selections", value: "featured" },
-];
-
-const SIZES_LIST = ["2T", "3T", "4T", "5T", "L", "M", "S", "XS", "36", "37"];
-const COLORS_LIST = [
-  "Blue",
-  "Green",
-  "Black",
-  "Red",
-  "Brown",
-  "Gray",
-  "Burgundy",
-  "Tan Brown",
-  "Floral Blue",
-  "Floral Red",
 ];
 
 const ITEMS_PER_PAGE = 9;
@@ -71,12 +52,6 @@ function ShopContent() {
     const rating = searchParams.get("rating");
     return rating ? Number(rating) : 0;
   });
-  const [selectedSizes, setSelectedSizes] = useState<string[]>(
-    () => searchParams.get("sizes")?.split(",").filter(Boolean) || [],
-  );
-  const [selectedColors, setSelectedColors] = useState<string[]>(
-    () => searchParams.get("colors")?.split(",").filter(Boolean) || [],
-  );
   const [inStockOnly, setInStockOnly] = useState<boolean>(() => {
     return searchParams.get("inStock") === "true";
   });
@@ -90,7 +65,6 @@ function ShopContent() {
 
   const categoriesQuery = useCategories({ page: 1, limit: 100 });
   const subcategoriesQuery = useSubcategories({ page: 1, limit: 100 });
-  const variantsQuery = useProductVariants({ page: 1, limit: 100 });
   const productsQuery = useProducts({
     page: currentPage,
     limit: ITEMS_PER_PAGE,
@@ -101,14 +75,6 @@ function ShopContent() {
       ? { subcategoryIds: selectedSubcategories }
       : {}),
     ...(minRating > 0 ? { minRating } : {}),
-    ...(selectedSizes.length || selectedColors.length
-      ? {
-          variantOptions: {
-            ...(selectedSizes.length ? { Size: selectedSizes } : {}),
-            ...(selectedColors.length ? { Color: selectedColors } : {}),
-          },
-        }
-      : {}),
     ...(inStockOnly ? { status: "IN_STOCK" as const } : {}),
     ...(selectedCollections.length ? { collections: selectedCollections } : {}),
     sort: sortBy as "newest" | "price_asc" | "price_desc",
@@ -150,8 +116,8 @@ function ShopContent() {
       minPrice: minPrice > 0 ? minPrice.toString() : null,
       maxPrice: maxPrice < 10000 ? maxPrice.toString() : null,
       rating: minRating > 0 ? minRating.toString() : null,
-      sizes: selectedSizes.length ? selectedSizes.join(",") : null,
-      colors: selectedColors.length ? selectedColors.join(",") : null,
+      sizes: null,
+      colors: null,
       inStock: inStockOnly ? "true" : null,
       sort: sortBy !== "newest" ? sortBy : null,
       page: currentPage > 1 ? currentPage.toString() : null,
@@ -163,8 +129,6 @@ function ShopContent() {
     minPrice,
     maxPrice,
     minRating,
-    selectedSizes,
-    selectedColors,
     inStockOnly,
     sortBy,
     currentPage,
@@ -179,8 +143,6 @@ function ShopContent() {
     setMinPrice(0);
     setMaxPrice(10000);
     setMinRating(0);
-    setSelectedSizes([]);
-    setSelectedColors([]);
     setInStockOnly(false);
     setSortBy("newest");
     setCurrentPage(1);
@@ -266,21 +228,6 @@ function ShopContent() {
   const filteredCategoriesList = categoryRecords.filter((category) =>
     category.name.toLowerCase().includes(categorySearch.toLowerCase()),
   );
-  const variantOptionValues = (optionName: string) =>
-    variantsQuery.data?.items.flatMap((variant) =>
-      variant.options
-        .filter(
-          (option) => option.name.toLowerCase() === optionName.toLowerCase(),
-        )
-        .map((option) => option.value),
-    ) ?? [];
-  const sizeOptions = [
-    ...new Set([...SIZES_LIST, ...variantOptionValues("Size")]),
-  ].sort();
-  const colorOptions = [
-    ...new Set([...COLORS_LIST, ...variantOptionValues("Color")]),
-  ].sort();
-
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-8 py-6">
       {/* Breadcrumb */}
@@ -492,59 +439,7 @@ function ShopContent() {
             </div>
           </div>
 
-          {/* 4. Size */}
-          <div className="space-y-2.5 border-t border-gray-100 pt-5">
-            <h4 className="text-xs font-semibold text-gray-800">Size</h4>
-            <div className="flex flex-wrap gap-1.5">
-              {sizeOptions.map((size) => {
-                const isSelected = selectedSizes.includes(size);
-                return (
-                  <button
-                    key={size}
-                    type="button"
-                    onClick={() =>
-                      toggleItem(selectedSizes, setSelectedSizes, size)
-                    }
-                    className={`min-w-8 h-7 px-2 text-[11px] font-medium rounded border transition ${
-                      isSelected
-                        ? "bg-black text-white border-black"
-                        : "bg-white text-gray-700 border-gray-200 hover:border-black"
-                    }`}
-                  >
-                    {size}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* 5. Color */}
-          <div className="space-y-2.5 border-t border-gray-100 pt-5">
-            <h4 className="text-xs font-semibold text-gray-800">Color</h4>
-            <div className="flex flex-wrap gap-1.5">
-              {colorOptions.map((color) => {
-                const isSelected = selectedColors.includes(color);
-                return (
-                  <button
-                    key={color}
-                    type="button"
-                    onClick={() =>
-                      toggleItem(selectedColors, setSelectedColors, color)
-                    }
-                    className={`px-2.5 py-1 text-[11px] font-medium rounded-full border transition ${
-                      isSelected
-                        ? "bg-black text-white border-black"
-                        : "bg-white text-gray-600 border-gray-200 hover:border-black"
-                    }`}
-                  >
-                    {color}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* 6. In Stock Only */}
+          {/* In Stock Only */}
           <div className="border-t border-gray-100 pt-5 flex items-center justify-between">
             <label
               htmlFor="in-stock-toggle"

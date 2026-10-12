@@ -5,7 +5,9 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Suspense, useState } from "react";
 import { ArrowLeft, Minus, Plus, ShoppingBag, Star } from "lucide-react";
-import { useProduct } from "@/hooks";
+import { ProductCard } from "@/components/ProductCard";
+import { useProduct, useProducts } from "@/hooks";
+import { toProductCard } from "@/lib/product-view";
 import { useCartStore } from "@/lib/cart-store";
 
 const formatPrice = (price: string) =>
@@ -28,6 +30,12 @@ export default function ProductDetailPage() {
 function ProductDetailContent() {
   const params = useParams<{ productId: string }>();
   const productQuery = useProduct(params.productId);
+  const categoryId = productQuery.data?.categories?.[0]?.category.id;
+  const relatedQuery = useProducts({
+    page: 1,
+    limit: 100,
+    ...(categoryId ? { categoryIds: [categoryId] } : {}),
+  });
   const addItem = useCartStore((state) => state.addItem);
   const [selectedVariantId, setSelectedVariantId] = useState<string>();
   const [quantity, setQuantity] = useState(1);
@@ -58,6 +66,15 @@ function ProductDetailContent() {
   }
 
   const product = productQuery.data;
+  const relatedProducts = (relatedQuery.data?.items ?? [])
+    .filter((candidate) => candidate.id !== product.id)
+    .map((candidate) => ({
+      product: candidate,
+      rank: hash(`${product.id}:${candidate.id}`),
+    }))
+    .sort((left, right) => left.rank - right.rank)
+    .slice(0, 4)
+    .map(({ product: candidate }) => toProductCard(candidate));
   const variants = product.variants ?? [];
   const selectedVariant =
     variants.find((variant) => variant.id === selectedVariantId) ?? variants[0];
@@ -245,6 +262,41 @@ function ProductDetailContent() {
           )}
         </section>
       </div>
+
+      {relatedProducts.length > 0 && (
+        <section className="mt-16 border-t border-gray-200 pt-10 sm:mt-20">
+          <div className="mb-6 flex items-end justify-between gap-4">
+            <div>
+              <p className="text-xs font-medium uppercase text-emerald-800">
+                {category}
+              </p>
+              <h2 className="mt-1 text-2xl font-semibold text-gray-950">
+                More from this category
+              </h2>
+            </div>
+            <Link
+              href={`/shop?categories=${encodeURIComponent(categoryId ?? "")}`}
+              className="shrink-0 text-xs font-medium text-gray-600 underline underline-offset-4 hover:text-black"
+            >
+              View category
+            </Link>
+          </div>
+          <div className="grid grid-cols-2 gap-x-4 gap-y-7 sm:grid-cols-4">
+            {relatedProducts.map((relatedProduct) => (
+              <ProductCard key={relatedProduct.id} product={relatedProduct} />
+            ))}
+          </div>
+        </section>
+      )}
     </main>
   );
+}
+
+function hash(value: string) {
+  let result = 2166136261;
+  for (const character of value) {
+    result ^= character.charCodeAt(0);
+    result = Math.imul(result, 16777619);
+  }
+  return result >>> 0;
 }

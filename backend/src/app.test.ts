@@ -89,11 +89,11 @@ test("admin product management requires authentication", async () => {
   assert.equal(response.status, 401);
 });
 
-test("order tracking rejects incomplete input before database access", async () => {
+test("order tracking requires either an order id or a phone number", async () => {
   const response = await fetch(`${baseUrl}/api/orders/track`, {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ orderId: "order-id" }),
+    body: JSON.stringify({}),
   });
 
   assert.equal(response.status, 400);

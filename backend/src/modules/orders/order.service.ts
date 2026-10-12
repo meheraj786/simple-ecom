@@ -129,13 +129,19 @@ export async function placeOrder(input: PlaceOrderInput) {
   );
 }
 
-export async function trackOrder(orderId: string, customerPhone: string) {
-  return prisma.order.findFirst({
-    where: { id: orderId, customerPhone },
+export async function trackOrder(
+  orderId: string | null,
+  customerPhone: string | null,
+) {
+  return prisma.order.findMany({
+    where: orderId ? { id: orderId } : { customerPhone: customerPhone! },
+    orderBy: { createdAt: "desc" },
+    take: orderId ? 1 : 20,
     select: {
       id: true,
       status: true,
       paymentStatus: true,
+      totalAmount: true,
       createdAt: true,
       updatedAt: true,
       division: { select: { name: true } },

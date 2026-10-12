@@ -1,10 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { z } from "zod";
-import { LoaderCircle, Send } from "lucide-react";
+import { Check, LoaderCircle, Send } from "lucide-react";
 
 import { useSubmitContactMessage } from "@/hooks/use-contact-messages";
 import { Button } from "@/components/ui/button";
@@ -33,6 +34,7 @@ type ContactValues = z.infer<typeof contactSchema>;
 
 export function ContactMessageForm({ className = "" }: { className?: string }) {
   const submission = useSubmitContactMessage();
+  const [submitted, setSubmitted] = useState(false);
   const {
     register,
     handleSubmit,
@@ -44,6 +46,7 @@ export function ContactMessageForm({ className = "" }: { className?: string }) {
   });
 
   async function onSubmit(values: ContactValues) {
+    setSubmitted(false);
     try {
       await submission.mutateAsync({
         ...values,
@@ -51,6 +54,7 @@ export function ContactMessageForm({ className = "" }: { className?: string }) {
         subject: values.subject.trim(),
       });
       reset();
+      setSubmitted(true);
       toast.success("Your message has been sent");
     } catch (error) {
       const responseMessage =
@@ -80,6 +84,19 @@ export function ContactMessageForm({ className = "" }: { className?: string }) {
           Share your question and our team will get back to you.
         </p>
       </div>
+
+      {submitted && (
+        <div
+          role="status"
+          className="flex items-start gap-3 border border-emerald-800/20 bg-emerald-50 px-4 py-3 text-sm text-emerald-950"
+        >
+          <Check className="mt-0.5 size-4 shrink-0" />
+          <p>
+            <span className="font-semibold">Message received.</span> Our team
+            will get back to you soon.
+          </p>
+        </div>
+      )}
 
       <form className="grid gap-4" onSubmit={handleSubmit(onSubmit)} noValidate>
         <div className="grid gap-4 sm:grid-cols-2">

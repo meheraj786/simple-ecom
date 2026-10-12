@@ -84,17 +84,17 @@ export const getOrderTracking: RequestHandler = async (request, response) => {
       ? request.body.customerPhone.trim()
       : "";
 
-  if (!orderId || !customerPhone) {
-    errorResponse(response, 400, "orderId and customerPhone are required");
+  if (Boolean(orderId) === Boolean(customerPhone)) {
+    errorResponse(response, 400, "Provide either an orderId or customerPhone");
     return;
   }
 
-  const order = await trackOrder(orderId, customerPhone);
-  if (!order) {
-    errorResponse(response, 404, "Order not found for the supplied details");
+  const orders = await trackOrder(orderId || null, customerPhone || null);
+  if (orders.length === 0) {
+    errorResponse(response, 404, "No orders found for the supplied details");
     return;
   }
-  successResponse(response, "Order tracking details", order);
+  successResponse(response, "Order tracking details", orders);
 };
 
 export const getAdminOrderDetails: RequestHandler = async (

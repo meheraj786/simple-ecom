@@ -13,7 +13,15 @@ import type { Control, UseFormRegister } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { z } from "zod";
-import { LoaderCircle, Plus, Trash2, X } from "lucide-react";
+import { Popover } from "@base-ui/react/popover";
+import {
+  ChevronDown,
+  LoaderCircle,
+  Search,
+  Plus,
+  Trash2,
+  X,
+} from "lucide-react";
 
 import type {
   AdminProduct,
@@ -140,15 +148,23 @@ const productFormSchema = z
 
 export type ProductFormValues = z.infer<typeof productFormSchema>;
 
-function emptyVariant() {
+function emptyVariant(sku = "") {
   return {
-    sku: "",
+    sku,
     price: "",
     compareAtPrice: "",
     images: [] as string[],
     options: [] as Array<{ name: string; value: string; image: string }>,
     isActive: true,
   };
+}
+
+function variantSku(productSku: string, index: number) {
+  const prefix = productSku
+    .trim()
+    .replace(/[^a-z0-9-]/gi, "")
+    .toUpperCase();
+  return `${prefix || "VAR"}-V${String(index).padStart(2, "0")}`;
 }
 
 const emptyProduct: ProductFormValues = {
@@ -166,6 +182,16 @@ const emptyProduct: ProductFormValues = {
   subcategoryIds: [],
   variants: [emptyVariant()],
 };
+
+function slugify(value: string) {
+  return value
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
 
 function isVideoUrl(url: string) {
   try {
@@ -197,6 +223,96 @@ function MediaPreview({ url, label }: { url: string; label: string }) {
           className="object-cover"
         />
       )}
+    </div>
+  );
+}
+
+function SearchableMultiSelect({
+  label,
+  options,
+  selectedIds,
+  onToggle,
+  disabled,
+}: {
+  label: string;
+  options: Array<{ id: string; name: string }>;
+  selectedIds: string[];
+  onToggle: (id: string, checked: boolean) => void;
+  disabled: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const filteredOptions = options.filter((option) =>
+    option.name.toLowerCase().includes(search.trim().toLowerCase()),
+  );
+
+  return (
+    <div className="grid gap-1.5">
+      <Label>{label}</Label>
+      <Popover.Root
+        open={open}
+        onOpenChange={(nextOpen) => {
+          setOpen(nextOpen);
+          if (!nextOpen) setSearch("");
+        }}
+      >
+        <Popover.Trigger
+          type="button"
+          disabled={disabled}
+          className="flex h-9 w-full items-center justify-between gap-2 rounded-md border border-input bg-transparent px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <span className="truncate text-left">
+            {selectedIds.length
+              ? `${selectedIds.length} selected`
+              : `Choose ${label.toLowerCase()}`}
+          </span>
+          <ChevronDown className="size-4 shrink-0 text-muted-foreground" />
+        </Popover.Trigger>
+        <Popover.Portal>
+          <Popover.Positioner
+            side="bottom"
+            align="start"
+            sideOffset={4}
+            className="z-[70] w-(--anchor-width)"
+          >
+            <Popover.Popup className="w-full rounded-md border bg-popover p-2 text-popover-foreground shadow-md outline-none">
+              <div className="relative mb-2">
+                <Search className="pointer-events-none absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
+                <Input
+                  autoFocus
+                  value={search}
+                  onChange={(event) => setSearch(event.target.value)}
+                  placeholder={`Search ${label.toLowerCase()}...`}
+                  className="pl-8"
+                />
+              </div>
+              <div className="max-h-52 overflow-y-auto">
+                {filteredOptions.length ? (
+                  filteredOptions.map((option) => (
+                    <label
+                      key={option.id}
+                      className="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent"
+                    >
+                      <Checkbox
+                        checked={selectedIds.includes(option.id)}
+                        onCheckedChange={(checked) =>
+                          onToggle(option.id, checked === true)
+                        }
+                        disabled={disabled}
+                      />
+                      <span className="min-w-0 truncate">{option.name}</span>
+                    </label>
+                  ))
+                ) : (
+                  <p className="px-2 py-3 text-sm text-muted-foreground">
+                    No matches found.
+                  </p>
+                )}
+              </div>
+            </Popover.Popup>
+          </Popover.Positioner>
+        </Popover.Portal>
+      </Popover.Root>
     </div>
   );
 }
@@ -595,6 +711,7 @@ export function ProductFormDialog({
     handleSubmit,
     reset,
     setValue,
+    getValues,
     formState: { errors },
   } = form;
   const variantArray = useFieldArray({ control, name: "variants" });
@@ -713,7 +830,40 @@ export function ProductFormDialog({
                 <Input
                   id="product-name"
                   aria-invalid={Boolean(errors.name)}
-                  {...register("name")}
+                  {...register("name", {
+                    onChange: (event) => {
+                      const generatedSlug = slugify(event.target.value);
+                      const skuSuffix = crypto
+                        .randomUUID()
+                        .replaceAll("-", "")
+                        .slice(0, 6)
+                        .toUpperCase();
+                      setValue("slug", generatedSlug, {
+                        shouldValidate: true,
+                      });
+                      setValue(
+                        "sku",
+                        generatedSlug
+                          ? `PRD-${generatedSlug.replaceAll("-", "").slice(0, 10).toUpperCase()}-${skuSuffix}`
+                          : "",
+                        { shouldValidate: true },
+                      );
+                      if (!product) {
+                        getValues("variants").forEach((_, index) => {
+                          setValue(
+                            `variants.${index}.sku`,
+                            generatedSlug
+                              ? variantSku(
+                                  `PRD-${generatedSlug.replaceAll("-", "").slice(0, 10).toUpperCase()}-${skuSuffix}`,
+                                  index + 1,
+                                )
+                              : "",
+                            { shouldValidate: true },
+                          );
+                        });
+                      }
+                    },
+                  })}
                 />
                 {errors.name && (
                   <p className="text-sm text-destructive">
@@ -859,60 +1009,24 @@ export function ProductFormDialog({
               </p>
             ) : (
               <div className="grid gap-4 sm:grid-cols-2">
-                <fieldset className="grid content-start gap-2 rounded-lg border p-3">
-                  <legend className="px-1 text-sm font-medium">
-                    Categories
-                  </legend>
-                  {categories.length ? (
-                    categories.map((category) => (
-                      <label
-                        key={category.id}
-                        className="flex items-center gap-2 text-sm"
-                      >
-                        <Checkbox
-                          checked={selectedCategoryIds.includes(category.id)}
-                          onCheckedChange={(checked) =>
-                            changeCategory(category.id, checked === true)
-                          }
-                          disabled={busy}
-                        />
-                        {category.name}
-                      </label>
-                    ))
-                  ) : (
-                    <p className="text-sm text-muted-foreground">
-                      No categories found.
-                    </p>
-                  )}
-                </fieldset>
-                <fieldset className="grid content-start gap-2 rounded-lg border p-3">
-                  <legend className="px-1 text-sm font-medium">
-                    Subcategories
-                  </legend>
-                  {eligibleSubcategories.length ? (
-                    eligibleSubcategories.map((subcategory) => (
-                      <label
-                        key={subcategory.id}
-                        className="flex items-center gap-2 text-sm"
-                      >
-                        <Checkbox
-                          checked={selectedSubcategoryIds.includes(
-                            subcategory.id,
-                          )}
-                          onCheckedChange={(checked) =>
-                            changeSubcategory(subcategory.id, checked === true)
-                          }
-                          disabled={busy}
-                        />
-                        {subcategory.name}
-                      </label>
-                    ))
-                  ) : (
-                    <p className="text-sm text-muted-foreground">
-                      Select a category to see its subcategories.
-                    </p>
-                  )}
-                </fieldset>
+                <SearchableMultiSelect
+                  label="Categories"
+                  options={categories}
+                  selectedIds={selectedCategoryIds}
+                  onToggle={(categoryId, checked) =>
+                    changeCategory(categoryId, checked)
+                  }
+                  disabled={busy || categories.length === 0}
+                />
+                <SearchableMultiSelect
+                  label="Subcategories"
+                  options={eligibleSubcategories}
+                  selectedIds={selectedSubcategoryIds}
+                  onToggle={(subcategoryId, checked) =>
+                    changeSubcategory(subcategoryId, checked)
+                  }
+                  disabled={busy || eligibleSubcategories.length === 0}
+                />
               </div>
             )}
           </section>
@@ -962,7 +1076,16 @@ export function ProductFormDialog({
                 variant="outline"
                 size="sm"
                 disabled={busy || variantArray.fields.length >= 100}
-                onClick={() => variantArray.append(emptyVariant())}
+                onClick={() =>
+                  variantArray.append(
+                    emptyVariant(
+                      variantSku(
+                        getValues("sku"),
+                        variantArray.fields.length + 1,
+                      ),
+                    ),
+                  )
+                }
               >
                 <Plus />
                 Add variant

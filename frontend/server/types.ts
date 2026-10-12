@@ -279,11 +279,13 @@ export type PlaceOrderInput = {
   items: Array<{ variantId: string; quantity: number }>;
 };
 
-export type TrackOrderInput = { orderId: string; customerPhone: string };
+export type TrackOrderInput =
+  | { orderId: string; customerPhone?: never }
+  | { customerPhone: string; orderId?: never };
 
 export type OrderTracking = Pick<
   Order,
-  "id" | "status" | "paymentStatus" | "createdAt" | "updatedAt"
+  "id" | "status" | "paymentStatus" | "totalAmount" | "createdAt" | "updatedAt"
 > & {
   division: { name: string };
   items: Array<{ quantity: number; price: string; variantSnapshot: unknown }>;

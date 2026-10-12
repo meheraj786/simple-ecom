@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { z } from "zod";
+import { uploadImageOrVideo } from "@/lib/cloudinary";
 import {
   ArrowDownToLine,
   LoaderCircle,
@@ -103,6 +105,16 @@ const emptySubcategoryValues: SubcategoryFormValues = {
 };
 const noCategories: Category[] = [];
 
+function slugify(value: string) {
+  return value
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
 async function fetchAllPages<T>(
   list: (params?: ListParams) => Promise<PaginatedData<T>>,
 ) {
@@ -159,11 +171,14 @@ function CategoryFormDialog({
     register,
     handleSubmit,
     reset,
+    control,
+    setValue,
     formState: { errors },
   } = useForm<CategoryFormValues>({
     resolver: zodResolver(categoryFormSchema),
     defaultValues: emptyCategoryValues,
   });
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   useEffect(() => {
     if (open) {
@@ -174,6 +189,24 @@ function CategoryFormDialog({
       );
     }
   }, [item, open, reset]);
+
+  async function uploadImage(
+    file: File | undefined,
+    onChange: (url: string) => void,
+  ) {
+    if (!file) return;
+    setUploadingImage(true);
+    try {
+      onChange(await uploadImageOrVideo(file, { folder: "categories" }));
+      toast.success("Category image uploaded");
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Image upload failed",
+      );
+    } finally {
+      setUploadingImage(false);
+    }
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -196,7 +229,13 @@ function CategoryFormDialog({
               id="category-name"
               autoComplete="off"
               aria-invalid={Boolean(errors.name)}
-              {...register("name")}
+              {...register("name", {
+                onChange: (event) => {
+                  setValue("slug", slugify(event.target.value), {
+                    shouldValidate: true,
+                  });
+                },
+              })}
             />
             {errors.name && (
               <p className="text-sm text-destructive">{errors.name.message}</p>
@@ -216,12 +255,42 @@ function CategoryFormDialog({
           </div>
           <div className="grid gap-2">
             <Label htmlFor="category-image">Image URL</Label>
-            <Input
-              id="category-image"
-              type="url"
-              placeholder="https://example.com/image.jpg"
-              aria-invalid={Boolean(errors.image)}
-              {...register("image")}
+            <Controller
+              name="image"
+              control={control}
+              render={({ field }) => (
+                <div className="grid gap-2">
+                  <Input
+                    id="category-image"
+                    type="file"
+                    accept="image/*"
+                    disabled={uploadingImage || saving}
+                    aria-invalid={Boolean(errors.image)}
+                    onChange={(event) => {
+                      void uploadImage(
+                        event.currentTarget.files?.[0],
+                        field.onChange,
+                      );
+                      event.currentTarget.value = "";
+                    }}
+                  />
+                  {field.value && (
+                    <div className="flex items-center gap-3">
+                      <Image
+                        src={field.value}
+                        alt="Category preview"
+                        width={56}
+                        height={56}
+                        unoptimized
+                        className="size-14 rounded border object-cover"
+                      />
+                      <span className="min-w-0 truncate text-xs text-muted-foreground">
+                        {field.value}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
             />
             {errors.image && (
               <p className="text-sm text-destructive">{errors.image.message}</p>
@@ -231,13 +300,23 @@ function CategoryFormDialog({
         <DialogFooter>
           <DialogClose
             render={
-              <Button type="button" variant="outline" disabled={saving} />
+              <Button
+                type="button"
+                variant="outline"
+                disabled={saving || uploadingImage}
+              />
             }
           >
             Cancel
           </DialogClose>
-          <Button type="submit" form="category-form" disabled={saving}>
-            {saving && <LoaderCircle className="animate-spin" />}
+          <Button
+            type="submit"
+            form="category-form"
+            disabled={saving || uploadingImage}
+          >
+            {(saving || uploadingImage) && (
+              <LoaderCircle className="animate-spin" />
+            )}
             {item ? "Save changes" : "Create category"}
           </Button>
         </DialogFooter>
@@ -268,11 +347,13 @@ function SubcategoryFormDialog({
     handleSubmit,
     reset,
     control,
+    setValue,
     formState: { errors },
   } = useForm<SubcategoryFormValues>({
     resolver: zodResolver(subcategoryFormSchema),
     defaultValues: emptySubcategoryValues,
   });
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   useEffect(() => {
     if (open) {
@@ -288,6 +369,24 @@ function SubcategoryFormDialog({
       );
     }
   }, [item, open, reset]);
+
+  async function uploadImage(
+    file: File | undefined,
+    onChange: (url: string) => void,
+  ) {
+    if (!file) return;
+    setUploadingImage(true);
+    try {
+      onChange(await uploadImageOrVideo(file, { folder: "subcategories" }));
+      toast.success("Subcategory image uploaded");
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Image upload failed",
+      );
+    } finally {
+      setUploadingImage(false);
+    }
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -358,7 +457,13 @@ function SubcategoryFormDialog({
               id="subcategory-name"
               autoComplete="off"
               aria-invalid={Boolean(errors.name)}
-              {...register("name")}
+              {...register("name", {
+                onChange: (event) => {
+                  setValue("slug", slugify(event.target.value), {
+                    shouldValidate: true,
+                  });
+                },
+              })}
             />
             {errors.name && (
               <p className="text-sm text-destructive">{errors.name.message}</p>
@@ -378,12 +483,42 @@ function SubcategoryFormDialog({
           </div>
           <div className="grid gap-2">
             <Label htmlFor="subcategory-image">Image URL</Label>
-            <Input
-              id="subcategory-image"
-              type="url"
-              placeholder="https://example.com/image.jpg"
-              aria-invalid={Boolean(errors.image)}
-              {...register("image")}
+            <Controller
+              name="image"
+              control={control}
+              render={({ field }) => (
+                <div className="grid gap-2">
+                  <Input
+                    id="subcategory-image"
+                    type="file"
+                    accept="image/*"
+                    disabled={uploadingImage || saving}
+                    aria-invalid={Boolean(errors.image)}
+                    onChange={(event) => {
+                      void uploadImage(
+                        event.currentTarget.files?.[0],
+                        field.onChange,
+                      );
+                      event.currentTarget.value = "";
+                    }}
+                  />
+                  {field.value && (
+                    <div className="flex items-center gap-3">
+                      <Image
+                        src={field.value}
+                        alt="Subcategory preview"
+                        width={56}
+                        height={56}
+                        unoptimized
+                        className="size-14 rounded border object-cover"
+                      />
+                      <span className="min-w-0 truncate text-xs text-muted-foreground">
+                        {field.value}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
             />
             {errors.image && (
               <p className="text-sm text-destructive">{errors.image.message}</p>
@@ -393,7 +528,11 @@ function SubcategoryFormDialog({
         <DialogFooter>
           <DialogClose
             render={
-              <Button type="button" variant="outline" disabled={saving} />
+              <Button
+                type="button"
+                variant="outline"
+                disabled={saving || uploadingImage}
+              />
             }
           >
             Cancel
@@ -401,9 +540,11 @@ function SubcategoryFormDialog({
           <Button
             type="submit"
             form="subcategory-form"
-            disabled={saving || categories.length === 0}
+            disabled={saving || uploadingImage || categories.length === 0}
           >
-            {saving && <LoaderCircle className="animate-spin" />}
+            {(saving || uploadingImage) && (
+              <LoaderCircle className="animate-spin" />
+            )}
             {item ? "Save changes" : "Create subcategory"}
           </Button>
         </DialogFooter>
