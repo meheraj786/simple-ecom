@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { useCategories, useProducts, useSubcategories } from "@/hooks";
 import { ProductCard } from "@/components/ProductCard";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const COLLECTIONS_LIST = [
   { label: "New arrivals", value: "new-arrivals" },
@@ -508,9 +509,23 @@ function ShopContent() {
           </div>
 
           {/* Products Grid */}
-          {productsQuery.isPending ? (
-            <div className="py-24 text-center text-sm text-gray-500">
-              Loading products…
+          {productsQuery.isFetching ? (
+            <div
+              role="status"
+              aria-label="Loading products"
+              className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3"
+            >
+              {Array.from({ length: ITEMS_PER_PAGE }, (_, index) => (
+                <article key={index} className="flex min-w-0 flex-col">
+                  <Skeleton className="aspect-3/4 w-full rounded-none" />
+                  <div className="flex flex-col gap-2 pt-3">
+                    <Skeleton className="h-3 w-1/3" />
+                    <Skeleton className="h-5 w-4/5" />
+                    <Skeleton className="h-4 w-1/2" />
+                    <Skeleton className="h-3 w-2/3" />
+                  </div>
+                </article>
+              ))}
             </div>
           ) : productsQuery.isError ? (
             <div className="py-24 text-center text-sm text-red-700">

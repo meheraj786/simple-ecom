@@ -93,6 +93,7 @@ export function createCrudService(
           skip: (page - 1) * limit,
           take: limit,
           ...(where ? { where } : {}),
+          ...(config.orderBy ? { orderBy: config.orderBy } : {}),
         }),
         delegate.count(where ? { where } : undefined),
       ]);

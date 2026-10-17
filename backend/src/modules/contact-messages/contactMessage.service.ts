@@ -3,6 +3,7 @@ import { createCrudService } from "../crud/crud.service.js";
 
 export const contactMessageCrudService = createCrudService("contactMessage", {
   path: "contact-messages",
+  orderBy: { createdAt: "desc" },
 });
 
 export type CreateContactMessageInput = {

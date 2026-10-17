@@ -154,107 +154,107 @@ export async function createAdminProduct(input: AdminProductInput) {
 }
 
 export async function updateAdminProduct(id: string, input: AdminProductInput) {
-  return prisma.$transaction(async (transaction) => {
-    const existing = await transaction.product.findUnique({
-      where: { id },
-      select: { id: true },
-    });
-    if (!existing) {
-      throw Object.assign(new Error("Product not found"), { status: 404 });
-    }
-
-    await validateProductRelations(transaction, input);
-    const existingVariants = await transaction.productVariant.findMany({
-      where: { productId: id },
-      select: { id: true },
-    });
-    const existingVariantIds = new Set(existingVariants.map(({ id }) => id));
-    const requestedVariantIds = input.variants.flatMap((variant) =>
-      variant.id ? [variant.id] : [],
-    );
-    if (
-      requestedVariantIds.some(
-        (variantId) => !existingVariantIds.has(variantId),
-      ) ||
-      new Set(requestedVariantIds).size !== requestedVariantIds.length
-    ) {
-      throw Object.assign(new Error("Invalid product variant reference"), {
-        status: 400,
+  return prisma.$transaction(
+    async (transaction) => {
+      const existing = await transaction.product.findUnique({
+        where: { id },
+        select: { id: true },
       });
-    }
+      if (!existing) {
+        throw Object.assign(new Error("Product not found"), { status: 404 });
+      }
 
-    const requestedIds = new Set(requestedVariantIds);
-    const removedIds = existingVariants
-      .map(({ id: variantId }) => variantId)
-      .filter((variantId) => !requestedIds.has(variantId));
-    if (removedIds.length) {
-      const referencedVariants = await transaction.orderItem.findMany({
-        where: { variantId: { in: removedIds } },
-        select: { variantId: true },
-        distinct: ["variantId"],
+      await validateProductRelations(transaction, input);
+      const existingVariants = await transaction.productVariant.findMany({
+        where: { productId: id },
+        select: { id: true },
       });
-      const referencedIds = new Set(
-        referencedVariants.map(({ variantId }) => variantId),
+      const existingVariantIds = new Set(existingVariants.map(({ id }) => id));
+      const requestedVariantIds = input.variants.flatMap((variant) =>
+        variant.id ? [variant.id] : [],
       );
-      const deactivateIds = removedIds.filter((variantId) =>
-        referencedIds.has(variantId),
-      );
-      const deleteIds = removedIds.filter(
-        (variantId) => !referencedIds.has(variantId),
-      );
-      if (deactivateIds.length) {
-        await transaction.productVariant.updateMany({
-          where: { id: { in: deactivateIds } },
-          data: { isActive: false },
+      if (
+        requestedVariantIds.some(
+          (variantId) => !existingVariantIds.has(variantId),
+        ) ||
+        new Set(requestedVariantIds).size !== requestedVariantIds.length
+      ) {
+        throw Object.assign(new Error("Invalid product variant reference"), {
+          status: 400,
         });
       }
-      if (deleteIds.length) {
-        await transaction.productVariant.deleteMany({
-          where: { id: { in: deleteIds } },
-        });
-      }
-    }
 
-    for (const variant of input.variants) {
-      if (variant.id) {
-        await transaction.productVariant.update({
-          where: { id: variant.id },
-          data: variantData(variant),
+      const requestedIds = new Set(requestedVariantIds);
+      const removedIds = existingVariants
+        .map(({ id: variantId }) => variantId)
+        .filter((variantId) => !requestedIds.has(variantId));
+      if (removedIds.length) {
+        const referencedVariants = await transaction.orderItem.findMany({
+          where: { variantId: { in: removedIds } },
+          select: { variantId: true },
+          distinct: ["variantId"],
         });
-      } else {
-        await transaction.productVariant.create({
-          data: { ...variantData(variant), productId: id },
-        });
+        const referencedIds = new Set(
+          referencedVariants.map(({ variantId }) => variantId),
+        );
+        const deactivateIds = removedIds.filter((variantId) =>
+          referencedIds.has(variantId),
+        );
+        const deleteIds = removedIds.filter(
+          (variantId) => !referencedIds.has(variantId),
+        );
+        if (deactivateIds.length) {
+          await transaction.productVariant.updateMany({
+            where: { id: { in: deactivateIds } },
+            data: { isActive: false },
+          });
+        }
+        if (deleteIds.length) {
+          await transaction.productVariant.deleteMany({
+            where: { id: { in: deleteIds } },
+          });
+        }
       }
-    }
 
-    await transaction.productCategory.deleteMany({ where: { productId: id } });
-    await transaction.productSubCategory.deleteMany({
-      where: { productId: id },
-    });
-    await transaction.product.update({
-      where: { id },
-      data: {
-        ...productData(input),
-        categories: {
-          create: input.categoryIds.map((categoryId) => ({
-            category: { connect: { id: categoryId } },
-          })),
+      for (const variant of input.variants) {
+        if (variant.id) {
+          await transaction.productVariant.update({
+            where: { id: variant.id },
+            data: variantData(variant),
+          });
+        } else {
+          await transaction.productVariant.create({
+            data: { ...variantData(variant), productId: id },
+          });
+        }
+      }
+
+      await transaction.productCategory.deleteMany({
+        where: { productId: id },
+      });
+      await transaction.productSubCategory.deleteMany({
+        where: { productId: id },
+      });
+      return transaction.product.update({
+        where: { id },
+        data: {
+          ...productData(input),
+          categories: {
+            create: input.categoryIds.map((categoryId) => ({
+              category: { connect: { id: categoryId } },
+            })),
+          },
+          subCategories: {
+            create: input.subcategoryIds.map((subCategoryId) => ({
+              subCategory: { connect: { id: subCategoryId } },
+            })),
+          },
         },
-        subCategories: {
-          create: input.subcategoryIds.map((subCategoryId) => ({
-            subCategory: { connect: { id: subCategoryId } },
-          })),
-        },
-      },
-      include: adminProductInclude,
-    });
-
-    return transaction.product.findUniqueOrThrow({
-      where: { id },
-      include: adminProductInclude,
-    });
-  });
+        include: adminProductInclude,
+      });
+    },
+    { timeout: 15_000 },
+  );
 }
 
 const productDetailInclude = {

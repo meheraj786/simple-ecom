@@ -5,6 +5,7 @@ export type CrudDelegate = {
     skip: number;
     take: number;
     where?: CrudRecord;
+    orderBy?: CrudRecord;
   }): Promise<unknown[]>;
   findFirst(args: { where: CrudRecord }): Promise<unknown | null>;
   count(args?: { where?: CrudRecord }): Promise<number>;
@@ -17,6 +18,7 @@ export type CrudConfig = {
   path: string;
   publicRead?: boolean;
   publicWhere?: CrudRecord;
+  orderBy?: CrudRecord;
   hidePassword?: boolean;
   variantOptions?: boolean;
   productStatus?: boolean;

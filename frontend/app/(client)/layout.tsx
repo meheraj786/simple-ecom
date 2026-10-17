@@ -28,9 +28,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body>
         <QueryProvider>
-          <Navbar />
+          {/* <Navbar /> */}
           {children}
-          <Footer />
+          {/* <Footer /> */}
         </QueryProvider>
       </body>
     </html>

@@ -924,12 +924,15 @@ export function ServerDataTable<T>({
 
   return (
     <div className="space-y-4">
-      <div className="overflow-hidden rounded-lg border">
-        <Table>
-          <TableHeader className="bg-muted/60">
+      <div className="overflow-x-auto rounded-lg border bg-card shadow-sm">
+        <Table className="min-w-180">
+          <TableHeader className="bg-muted/50">
             <TableRow>
               {columns.map((column) => (
-                <TableHead key={column.id} className={column.className}>
+                <TableHead
+                  key={column.id}
+                  className={`h-11 text-xs font-semibold uppercase tracking-wide text-muted-foreground ${column.className ?? ""}`}
+                >
                   {column.header}
                 </TableHead>
               ))}
@@ -938,9 +941,15 @@ export function ServerDataTable<T>({
           <TableBody>
             {data.length > 0 ? (
               data.map((row, index) => (
-                <TableRow key={index}>
+                <TableRow
+                  key={index}
+                  className="transition-colors hover:bg-muted/40"
+                >
                   {columns.map((column) => (
-                    <TableCell key={column.id} className={column.className}>
+                    <TableCell
+                      key={column.id}
+                      className={`py-3.5 align-middle ${column.className ?? ""}`}
+                    >
                       {column.cell(row)}
                     </TableCell>
                   ))}

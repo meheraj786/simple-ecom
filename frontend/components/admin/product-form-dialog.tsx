@@ -393,7 +393,7 @@ function OptionEditor({
       </div>
       <div className="grid gap-1.5">
         <Label htmlFor={`option-image-${variantIndex}-${index}`}>
-          Option image/video
+          Option image/video (optional)
         </Label>
         <Controller
           name={imageField}

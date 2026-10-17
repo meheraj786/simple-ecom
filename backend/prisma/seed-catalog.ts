@@ -10,7 +10,14 @@ const catalog = [
         name: "Everyday Oxford Shirt",
         slug: "everyday-oxford-shirt",
         sku: "MEN-SHIRT-001",
-        description: "A versatile cotton Oxford shirt for everyday wear.",
+        description: "A versatile cotton Oxford shirt cut for everyday wear.",
+        baseImage:
+          "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=900&q=80",
+        gallery: [
+          "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=900&q=80",
+          "https://images.unsplash.com/photo-1512436991641-6745cdb1723f?auto=format&fit=crop&w=900&q=80",
+          "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?auto=format&fit=crop&w=900&q=80",
+        ],
         price: "1890.00",
         compareAtPrice: "2290.00",
       },
@@ -18,7 +25,15 @@ const catalog = [
         name: "Classic Linen Shirt",
         slug: "classic-linen-shirt",
         sku: "MEN-SHIRT-002",
-        description: "A lightweight linen-blend shirt with a relaxed fit.",
+        description:
+          "A lightweight linen-blend shirt with a relaxed, polished fit.",
+        baseImage:
+          "https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=900&q=80",
+        gallery: [
+          "https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=900&q=80",
+          "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=80",
+          "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=900&q=80",
+        ],
         price: "2190.00",
         compareAtPrice: "2590.00",
       },
@@ -33,6 +48,13 @@ const catalog = [
         slug: "printed-day-dress",
         sku: "WOM-DRESS-001",
         description: "A comfortable printed dress for day-to-day outings.",
+        baseImage:
+          "https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&w=900&q=80",
+        gallery: [
+          "https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&w=900&q=80",
+          "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=900&q=80",
+          "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?auto=format&fit=crop&w=900&q=80",
+        ],
         price: "2790.00",
         compareAtPrice: "3290.00",
       },
@@ -41,6 +63,13 @@ const catalog = [
         slug: "soft-cotton-kurti",
         sku: "WOM-DRESS-002",
         description: "A breathable cotton kurti with an easy, graceful fit.",
+        baseImage:
+          "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=900&q=80",
+        gallery: [
+          "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=900&q=80",
+          "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=900&q=80",
+          "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=80",
+        ],
         price: "1690.00",
         compareAtPrice: "1990.00",
       },
@@ -55,6 +84,13 @@ const catalog = [
         slug: "city-runner-sneakers",
         sku: "SHO-SNEAK-001",
         description: "Lightweight everyday sneakers with cushioned support.",
+        baseImage:
+          "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=900&q=80",
+        gallery: [
+          "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=900&q=80",
+          "https://images.unsplash.com/photo-1600185365483-26d7a4cc7519?auto=format&fit=crop&w=900&q=80",
+          "https://images.unsplash.com/photo-1608231387042-66d1773070a5?auto=format&fit=crop&w=900&q=80",
+        ],
         price: "3490.00",
         compareAtPrice: "3990.00",
       },
@@ -63,6 +99,13 @@ const catalog = [
         slug: "canvas-low-tops",
         sku: "SHO-SNEAK-002",
         description: "Classic canvas low tops made for daily comfort.",
+        baseImage:
+          "https://images.unsplash.com/photo-1600185365483-26d7a4cc7519?auto=format&fit=crop&w=900&q=80",
+        gallery: [
+          "https://images.unsplash.com/photo-1600185365483-26d7a4cc7519?auto=format&fit=crop&w=900&q=80",
+          "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=900&q=80",
+          "https://images.unsplash.com/photo-1511556820780-d912e42b4980?auto=format&fit=crop&w=900&q=80",
+        ],
         price: "2490.00",
         compareAtPrice: "2890.00",
       },
@@ -77,6 +120,13 @@ const catalog = [
         slug: "daily-carry-tote",
         sku: "BAG-TOTE-001",
         description: "A roomy, durable tote for work and weekend essentials.",
+        baseImage:
+          "https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=900&q=80",
+        gallery: [
+          "https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=900&q=80",
+          "https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?auto=format&fit=crop&w=900&q=80",
+          "https://images.unsplash.com/photo-1590874103328-eac38a683ce7?auto=format&fit=crop&w=900&q=80",
+        ],
         price: "1590.00",
         compareAtPrice: "1890.00",
       },
@@ -85,6 +135,13 @@ const catalog = [
         slug: "compact-crossbody-bag",
         sku: "BAG-XBODY-001",
         description: "A compact crossbody with practical everyday storage.",
+        baseImage:
+          "https://images.unsplash.com/photo-1590874103328-eac38a683ce7?auto=format&fit=crop&w=900&q=80",
+        gallery: [
+          "https://images.unsplash.com/photo-1590874103328-eac38a683ce7?auto=format&fit=crop&w=900&q=80",
+          "https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=900&q=80",
+          "https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?auto=format&fit=crop&w=900&q=80",
+        ],
         price: "2290.00",
         compareAtPrice: "2690.00",
       },
@@ -102,6 +159,13 @@ const catalog = [
         slug: "daily-hydration-moisturizer",
         sku: "BEA-SKIN-001",
         description: "A lightweight daily moisturizer for lasting hydration.",
+        baseImage:
+          "https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&w=900&q=80",
+        gallery: [
+          "https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&w=900&q=80",
+          "https://images.unsplash.com/photo-1571781926291-c477ebfd024b?auto=format&fit=crop&w=900&q=80",
+          "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=900&q=80",
+        ],
         price: "990.00",
         compareAtPrice: "1190.00",
       },
@@ -110,6 +174,13 @@ const catalog = [
         slug: "gentle-cleanser",
         sku: "BEA-SKIN-002",
         description: "A gentle face cleanser for a fresh, comfortable finish.",
+        baseImage:
+          "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=900&q=80",
+        gallery: [
+          "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=900&q=80",
+          "https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&w=900&q=80",
+          "https://images.unsplash.com/photo-1571781926291-c477ebfd024b?auto=format&fit=crop&w=900&q=80",
+        ],
         price: "690.00",
         compareAtPrice: "850.00",
       },
@@ -124,6 +195,13 @@ const catalog = [
         slug: "woven-cushion-cover",
         sku: "HOM-DECOR-001",
         description: "A textured cushion cover to add warmth to your space.",
+        baseImage:
+          "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=900&q=80",
+        gallery: [
+          "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=900&q=80",
+          "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=900&q=80",
+          "https://images.unsplash.com/photo-1494526585095-c41746248156?auto=format&fit=crop&w=900&q=80",
+        ],
         price: "790.00",
         compareAtPrice: "990.00",
       },
@@ -132,6 +210,13 @@ const catalog = [
         slug: "ceramic-table-vase",
         sku: "HOM-DECOR-002",
         description: "A minimal ceramic vase for shelves and dining tables.",
+        baseImage:
+          "https://images.unsplash.com/photo-1494526585095-c41746248156?auto=format&fit=crop&w=900&q=80",
+        gallery: [
+          "https://images.unsplash.com/photo-1494526585095-c41746248156?auto=format&fit=crop&w=900&q=80",
+          "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=900&q=80",
+          "https://images.unsplash.com/photo-1524758631624-e2822e304c36?auto=format&fit=crop&w=900&q=80",
+        ],
         price: "1290.00",
         compareAtPrice: "1590.00",
       },
@@ -146,6 +231,13 @@ const catalog = [
         slug: "wireless-everyday-earbuds",
         sku: "ELE-AUDIO-001",
         description: "Wireless earbuds with clear sound and a compact case.",
+        baseImage:
+          "https://images.unsplash.com/photo-1546435770-a3e426bf472b?auto=format&fit=crop&w=900&q=80",
+        gallery: [
+          "https://images.unsplash.com/photo-1546435770-a3e426bf472b?auto=format&fit=crop&w=900&q=80",
+          "https://images.unsplash.com/photo-1518444065439-e933c06ce9cd?auto=format&fit=crop&w=900&q=80",
+          "https://images.unsplash.com/photo-1583394838336-acd977736f90?auto=format&fit=crop&w=900&q=80",
+        ],
         price: "3290.00",
         compareAtPrice: "3790.00",
       },
@@ -154,6 +246,13 @@ const catalog = [
         slug: "portable-bluetooth-speaker",
         sku: "ELE-AUDIO-002",
         description: "A portable speaker for music at home or on the go.",
+        baseImage:
+          "https://images.unsplash.com/photo-1518444065439-e933c06ce9cd?auto=format&fit=crop&w=900&q=80",
+        gallery: [
+          "https://images.unsplash.com/photo-1518444065439-e933c06ce9cd?auto=format&fit=crop&w=900&q=80",
+          "https://images.unsplash.com/photo-1546435770-a3e426bf472b?auto=format&fit=crop&w=900&q=80",
+          "https://images.unsplash.com/photo-1583394838336-acd977736f90?auto=format&fit=crop&w=900&q=80",
+        ],
         price: "2890.00",
         compareAtPrice: "3390.00",
       },
@@ -168,6 +267,13 @@ const catalog = [
         slug: "kids-cotton-t-shirt",
         sku: "KID-TEE-001",
         description: "A soft cotton tee designed for active little days.",
+        baseImage:
+          "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=900&q=80",
+        gallery: [
+          "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=900&q=80",
+          "https://images.unsplash.com/photo-1519345182560-3f2917c472ef?auto=format&fit=crop&w=900&q=80",
+          "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=900&q=80",
+        ],
         price: "690.00",
         compareAtPrice: "850.00",
       },
@@ -176,6 +282,13 @@ const catalog = [
         slug: "kids-everyday-hoodie",
         sku: "KID-HOOD-001",
         description: "A cozy pullover hoodie for cooler days and playtime.",
+        baseImage:
+          "https://images.unsplash.com/photo-1519345182560-3f2917c472ef?auto=format&fit=crop&w=900&q=80",
+        gallery: [
+          "https://images.unsplash.com/photo-1519345182560-3f2917c472ef?auto=format&fit=crop&w=900&q=80",
+          "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=900&q=80",
+          "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=900&q=80",
+        ],
         price: "1490.00",
         compareAtPrice: "1790.00",
       },
@@ -191,6 +304,13 @@ const catalog = [
         sku: "SPO-TEE-001",
         description:
           "A quick-drying training tee for gym and outdoor workouts.",
+        baseImage:
+          "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=900&q=80",
+        gallery: [
+          "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=900&q=80",
+          "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=900&q=80",
+          "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=900&q=80",
+        ],
         price: "1190.00",
         compareAtPrice: "1490.00",
       },
@@ -199,6 +319,13 @@ const catalog = [
         slug: "grip-training-gloves",
         sku: "SPO-GLOVE-001",
         description: "Comfortable training gloves with a secure grip.",
+        baseImage:
+          "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=900&q=80",
+        gallery: [
+          "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=900&q=80",
+          "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=900&q=80",
+          "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=900&q=80",
+        ],
         price: "890.00",
         compareAtPrice: "1090.00",
       },
@@ -213,6 +340,13 @@ const catalog = [
         slug: "minimal-pendant-necklace",
         sku: "JEW-NECK-001",
         description: "A simple pendant necklace that layers easily.",
+        baseImage:
+          "https://images.unsplash.com/photo-1617038220319-276d3cfab638?auto=format&fit=crop&w=900&q=80",
+        gallery: [
+          "https://images.unsplash.com/photo-1617038220319-276d3cfab638?auto=format&fit=crop&w=900&q=80",
+          "https://images.unsplash.com/photo-1617038220319-276d3cfab638?auto=format&fit=crop&w=900&q=80",
+          "https://images.unsplash.com/photo-1535632787350-4e68ef0ac584?auto=format&fit=crop&w=900&q=80",
+        ],
         price: "1390.00",
         compareAtPrice: "1690.00",
       },
@@ -221,6 +355,13 @@ const catalog = [
         slug: "classic-hoop-earrings",
         sku: "JEW-HOOP-001",
         description: "Lightweight hoops with a timeless everyday profile.",
+        baseImage:
+          "https://images.unsplash.com/photo-1535632787350-4e68ef0ac584?auto=format&fit=crop&w=900&q=80",
+        gallery: [
+          "https://images.unsplash.com/photo-1535632787350-4e68ef0ac584?auto=format&fit=crop&w=900&q=80",
+          "https://images.unsplash.com/photo-1617038220319-276d3cfab638?auto=format&fit=crop&w=900&q=80",
+          "https://images.unsplash.com/photo-1523170335258-f5ed11844a49?auto=format&fit=crop&w=900&q=80",
+        ],
         price: "990.00",
         compareAtPrice: "1190.00",
       },
@@ -231,12 +372,18 @@ const catalog = [
 async function seedCatalog(): Promise<void> {
   await connectDB();
 
-  for (const [categoryIndex, entry] of catalog.entries()) {
+  await prisma.$transaction(async (transaction) => {
+    await transaction.orderItem.deleteMany();
+    await transaction.product.deleteMany();
+  });
+
+  for (const entry of catalog) {
     const category = await prisma.category.upsert({
       where: { slug: entry.category.slug },
       update: { name: entry.category.name },
       create: entry.category,
     });
+
     const subcategory = await prisma.subCategory.upsert({
       where: { slug: entry.subcategory.slug },
       update: {
@@ -249,141 +396,91 @@ async function seedCatalog(): Promise<void> {
       },
     });
 
-    for (const [productIndex, item] of entry.products.entries()) {
-      const product = await prisma.product.upsert({
-        where: { slug: item.slug },
-        update: {
-          name: item.name,
-          sku: item.sku,
-          description: item.description,
-          isActive: true,
-          status: "IN_STOCK",
-        },
-        create: {
+    for (const [index, item] of entry.products.entries()) {
+      const product = await prisma.product.create({
+        data: {
           name: item.name,
           slug: item.slug,
           sku: item.sku,
           description: item.description,
+          baseImage: item.baseImage,
           isActive: true,
-          isNew: categoryIndex === 0 && productIndex === 0,
-          isBestSeller: productIndex === 0,
-          isFeatured: categoryIndex === 2 && productIndex === 0,
+          isNew: index === 0,
+          isBestSeller: index === 0,
+          isFeatured: index === 0,
           status: "IN_STOCK",
+          categories: {
+            create: {
+              category: { connect: { id: category.id } },
+            },
+          },
+          subCategories: {
+            create: {
+              subCategory: { connect: { id: subcategory.id } },
+            },
+          },
         },
       });
 
-      await prisma.productCategory.upsert({
-        where: {
-          productId_categoryId: {
-            productId: product.id,
-            categoryId: category.id,
-          },
-        },
-        update: {},
-        create: { productId: product.id, categoryId: category.id },
-      });
-      await prisma.productSubCategory.upsert({
-        where: {
-          productId_subCategoryId: {
-            productId: product.id,
-            subCategoryId: subcategory.id,
-          },
-        },
-        update: {},
-        create: { productId: product.id, subCategoryId: subcategory.id },
-      });
-
-      const variants = [
+      const variantData = [
         {
           sku: `${item.sku}-NAVY-M`,
           price: item.price,
           compareAtPrice: item.compareAtPrice,
-          images: [],
+          images:
+            item.gallery.length >= 2
+              ? [item.gallery[0], item.gallery[1]]
+              : item.gallery,
           options: [
-            { name: "Color", value: "Navy Blue", image: "" },
+            { name: "Color", value: "Navy Blue", image: item.gallery[0] },
             { name: "Size", value: "M", image: "" },
           ],
         },
         {
-          sku: `${item.sku}-BLACK-L`,
+          sku: `${item.sku}-STONE-L`,
           price: item.price,
           compareAtPrice: item.compareAtPrice,
-          images: [],
+          images:
+            item.gallery.length >= 3
+              ? [item.gallery[1], item.gallery[2]]
+              : item.gallery,
           options: [
-            { name: "Color", value: "Black", image: "" },
+            { name: "Color", value: "Stone", image: item.gallery[1] },
             { name: "Size", value: "L", image: "" },
           ],
         },
       ];
 
-      for (const variant of variants) {
-        await prisma.productVariant.upsert({
-          where: { sku: variant.sku },
-          update: {
-            productId: product.id,
-            price: variant.price,
-            compareAtPrice: variant.compareAtPrice,
-            images: variant.images,
-            options: variant.options,
-            isActive: true,
-          },
-          create: {
-            ...variant,
-            productId: product.id,
-            isActive: true,
-          },
-        });
-      }
+      await prisma.productVariant.createMany({
+        data: variantData.map((variant) => ({
+          productId: product.id,
+          sku: variant.sku,
+          price: variant.price,
+          compareAtPrice: variant.compareAtPrice,
+          images: variant.images,
+          options: variant.options,
+          isActive: true,
+        })),
+      });
     }
   }
 
-  const categorySlugs = catalog.map(({ category }) => category.slug);
-  const subcategorySlugs = catalog.map(({ subcategory }) => subcategory.slug);
-  const productSlugs = catalog.flatMap(({ products }) =>
-    products.map(({ slug }) => slug),
-  );
-  const [categories, subcategoryCount, products] = await Promise.all([
-    prisma.category.findMany({
-      where: { slug: { in: categorySlugs } },
-      select: { id: true },
-    }),
-    prisma.subCategory.count({
-      where: { slug: { in: subcategorySlugs } },
-    }),
-    prisma.product.findMany({
-      where: { slug: { in: productSlugs } },
-      select: { id: true },
-    }),
-  ]);
-  const [productAssignments, variantCount] = await Promise.all([
-    prisma.productCategory.groupBy({
-      by: ["categoryId"],
-      where: {
-        categoryId: { in: categories.map(({ id }) => id) },
-        productId: { in: products.map(({ id }) => id) },
-      },
-      _count: { _all: true },
-    }),
-    prisma.productVariant.count({
-      where: { productId: { in: products.map(({ id }) => id) } },
-    }),
-  ]);
+  const productCount = await prisma.product.count();
+  const variantCount = await prisma.productVariant.count();
+  const orderItemCount = await prisma.orderItem.count();
 
   if (
-    categories.length !== catalog.length ||
-    subcategoryCount !== catalog.length ||
-    products.length !== catalog.length * 2 ||
-    variantCount !== catalog.length * 4 ||
-    productAssignments.length !== catalog.length ||
-    productAssignments.some(({ _count }) => _count._all !== 2)
+    productCount !==
+      catalog.reduce((sum, entry) => sum + entry.products.length, 0) ||
+    variantCount !==
+      catalog.reduce((sum, entry) => sum + entry.products.length * 2, 0) ||
+    orderItemCount !== 0
   ) {
-    throw new Error(
-      "Catalog seed verification failed; expected 10/10/20/40 records",
-    );
+    throw new Error("Catalog reset verification failed after reseeding.");
   }
 
   console.log(
-    `Catalog seed verified: ${categories.length} categories, ${subcategoryCount} subcategories, ${products.length} products, ${variantCount} variants; 2 products per category.`,
+    `Catalog reset complete: ${productCount} products, ${variantCount} variants, ${orderItemCount} order items remaining.`,
   );
 }
 

@@ -54,6 +54,7 @@ export const productsApi = {
       ...(params.collections?.length
         ? { collections: params.collections.join(",") }
         : {}),
+      ...(params.sort ? { sort: params.sort } : {}),
     };
     const response = await apiClient.get<ApiResponse<PaginatedData<Product>>>(
       "/products",

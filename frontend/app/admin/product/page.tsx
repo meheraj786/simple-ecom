@@ -111,7 +111,7 @@ function productPayload(values: ProductFormValues): AdminProductInput {
       options: variant.options.map((option) => ({
         name: option.name.trim(),
         value: option.value.trim(),
-        image: option.image.trim(),
+        image: option.image?.trim() ?? "",
       })),
       isActive: variant.isActive,
     })),
