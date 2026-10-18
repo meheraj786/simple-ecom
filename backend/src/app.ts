@@ -10,6 +10,7 @@ import apiRoutes from "./routes/index.js";
 import { getAllowedOrigins } from "./utils/cors.js";
 
 const app = express();
+app.set("trust proxy", 1);
 const allowedOrigins = getAllowedOrigins(
   process.env.CLIENT_URL,
   process.env.FRONTEND_URL,
