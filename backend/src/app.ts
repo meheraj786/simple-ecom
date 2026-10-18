@@ -7,12 +7,13 @@ import { errorHandler } from "./middlewares/errorHandler.js";
 import { notFound } from "./middlewares/notFound.js";
 import { apiRateLimiter } from "./middlewares/rateLimiter.js";
 import apiRoutes from "./routes/index.js";
+import { getAllowedOrigins } from "./utils/cors.js";
 
 const app = express();
-const allowedOrigins = (process.env.CLIENT_URL ?? "http://localhost:3000")
-  .split(",")
-  .map((origin) => origin.trim())
-  .filter(Boolean);
+const allowedOrigins = getAllowedOrigins(
+  process.env.CLIENT_URL,
+  process.env.FRONTEND_URL,
+);
 
 app.disable("x-powered-by");
 app.use(helmet());

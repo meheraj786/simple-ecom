@@ -3,6 +3,7 @@ import { once } from "node:events";
 import type { Server } from "node:http";
 import { after, before, test } from "node:test";
 import app from "./app.js";
+import { getAllowedOrigins } from "./utils/cors.js";
 import { resolveAdminRedirectPath } from "./utils/auth.js";
 import { hashPassword, verifyPassword } from "./utils/password.js";
 
@@ -34,6 +35,20 @@ test("health route reports a healthy service", async () => {
   assert.equal(response.status, 200);
   assert.equal(body.success, true);
   assert.equal(body.data.status, "ok");
+});
+
+test("CORS allowlist accepts client and frontend URLs with trailing slashes", () => {
+  assert.deepEqual(
+    getAllowedOrigins(
+      "https://admin.example.com/, http://localhost:3000",
+      "https://simple-ecom-tawny.vercel.app/",
+    ),
+    [
+      "https://admin.example.com",
+      "http://localhost:3000",
+      "https://simple-ecom-tawny.vercel.app",
+    ],
+  );
 });
 
 test("admin dashboard requires authentication", async () => {
