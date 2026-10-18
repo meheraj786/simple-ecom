@@ -282,11 +282,11 @@ const productDetailInclude = {
   },
 } satisfies Prisma.ProductInclude;
 
-export async function getProductByIdOrSlug(identifier: string) {
+export async function getProductBySlug(slug: string) {
   const product = await prisma.product.findFirst({
     where: {
       isActive: true,
-      OR: [{ id: identifier }, { slug: identifier }],
+      slug,
     },
     include: productDetailInclude,
   });
@@ -304,6 +304,7 @@ export type ProductListFilters = {
   minPrice?: number;
   maxPrice?: number;
   categoryIds?: string[];
+  categorySlugs?: string[];
   subcategoryIds?: string[];
   minRating?: number;
   variantOptions?: Record<string, string[]>;
@@ -352,8 +353,21 @@ export async function listProducts(filters: ProductListFilters) {
     ...(filters.minRating === undefined
       ? {}
       : { averageRating: { gte: filters.minRating } }),
-    ...(filters.categoryIds?.length
-      ? { categories: { some: { categoryId: { in: filters.categoryIds } } } }
+    ...(filters.categoryIds?.length || filters.categorySlugs?.length
+      ? {
+          categories: {
+            some: {
+              OR: [
+                ...(filters.categoryIds?.length
+                  ? [{ categoryId: { in: filters.categoryIds } }]
+                  : []),
+                ...(filters.categorySlugs?.length
+                  ? [{ category: { slug: { in: filters.categorySlugs } } }]
+                  : []),
+              ],
+            },
+          },
+        }
       : {}),
     ...(filters.subcategoryIds?.length
       ? {

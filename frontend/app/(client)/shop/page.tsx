@@ -66,12 +66,30 @@ function ShopContent() {
 
   const categoriesQuery = useCategories({ page: 1, limit: 100 });
   const subcategoriesQuery = useSubcategories({ page: 1, limit: 100 });
+  const categoryRecords = categoriesQuery.data?.items ?? [];
+  const selectedCategorySlugs = selectedCategories.map(
+    (selectedCategory) =>
+      categoryRecords.find(
+        (category) =>
+          category.slug === selectedCategory ||
+          category.id === selectedCategory,
+      )?.slug ?? selectedCategory,
+  );
+  const selectedCategoryIds = selectedCategories.flatMap((selectedCategory) => {
+    const category = categoryRecords.find(
+      (item) => item.slug === selectedCategory || item.id === selectedCategory,
+    );
+    return category ? [category.id] : [];
+  });
+  const categoriesParam = selectedCategorySlugs.join(",");
   const productsQuery = useProducts({
     page: currentPage,
     limit: ITEMS_PER_PAGE,
     ...(minPrice > 0 ? { minPrice } : {}),
     ...(maxPrice < 10000 ? { maxPrice } : {}),
-    ...(selectedCategories.length ? { categoryIds: selectedCategories } : {}),
+    ...(selectedCategorySlugs.length
+      ? { categorySlugs: selectedCategorySlugs }
+      : {}),
     ...(selectedSubcategories.length
       ? { subcategoryIds: selectedSubcategories }
       : {}),
@@ -105,9 +123,7 @@ function ShopContent() {
   // Sync to URL when states change
   useEffect(() => {
     updateUrlParams({
-      categories: selectedCategories.length
-        ? selectedCategories.join(",")
-        : null,
+      categories: categoriesParam || null,
       subcategories: selectedSubcategories.length
         ? selectedSubcategories.join(",")
         : null,
@@ -124,7 +140,7 @@ function ShopContent() {
       page: currentPage > 1 ? currentPage.toString() : null,
     });
   }, [
-    selectedCategories,
+    categoriesParam,
     selectedSubcategories,
     selectedCollections,
     minPrice,
@@ -188,6 +204,7 @@ function ShopContent() {
 
     return {
       id: product.id,
+      slug: product.slug,
       name: product.name,
       category: categoryNames[0] ?? "Collection",
       price:
@@ -219,12 +236,11 @@ function ShopContent() {
   });
   const totalProducts = productsQuery.data?.pagination.total ?? 0;
   const totalPages = Math.max(1, productsQuery.data?.pagination.pages ?? 1);
-  const categoryRecords = categoriesQuery.data?.items ?? [];
   const subcategoryRecords = subcategoriesQuery.data?.items ?? [];
   const visibleSubcategories = subcategoryRecords.filter(
     (subcategory) =>
-      selectedCategories.length === 0 ||
-      selectedCategories.includes(subcategory.categoryId),
+      selectedCategoryIds.length === 0 ||
+      selectedCategoryIds.includes(subcategory.categoryId),
   );
   const filteredCategoriesList = categoryRecords.filter((category) =>
     category.name.toLowerCase().includes(categorySearch.toLowerCase()),
@@ -285,12 +301,28 @@ function ShopContent() {
                 >
                   <input
                     type="checkbox"
-                    checked={selectedCategories.includes(category.id)}
+                    checked={
+                      selectedCategories.includes(category.slug) ||
+                      selectedCategories.includes(category.id)
+                    }
                     onChange={() => {
-                      toggleItem(
-                        selectedCategories,
-                        setSelectedCategories,
-                        category.id,
+                      setCurrentPage(1);
+                      const isSelected =
+                        selectedCategories.includes(category.slug) ||
+                        selectedCategories.includes(category.id);
+                      setSelectedCategories((current) =>
+                        isSelected
+                          ? current.filter(
+                              (value) =>
+                                value !== category.slug &&
+                                value !== category.id,
+                            )
+                          : [
+                              ...current.filter(
+                                (value) => value !== category.id,
+                              ),
+                              category.slug,
+                            ],
                       );
                       setSelectedSubcategories([]);
                     }}

@@ -3,6 +3,7 @@
 import {
   keepPreviousData,
   useMutation,
+  useQueries,
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
@@ -94,6 +95,22 @@ export function useProducts(params: ProductListParams = DEFAULT_LIST_PARAMS) {
     placeholderData: keepPreviousData,
   });
 }
+
+export function useCategoryProducts(categoryIds: string[]) {
+  return useQueries({
+    queries: categoryIds.map((categoryId) => ({
+      queryKey: [
+        "products",
+        "list",
+        { page: 1, limit: 5, categoryIds: [categoryId] },
+      ],
+      queryFn: () =>
+        productsApi.list({ page: 1, limit: 5, categoryIds: [categoryId] }),
+      enabled: Boolean(categoryId),
+    })),
+  });
+}
+
 export function useAdminProducts(params: ListParams = DEFAULT_LIST_PARAMS) {
   const pagination = normalizeListParams(params);
   return useQuery({

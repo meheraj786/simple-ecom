@@ -44,6 +44,9 @@ export const productsApi = {
       ...(params.categoryIds?.length
         ? { categoryIds: params.categoryIds.join(",") }
         : {}),
+      ...(params.categorySlugs?.length
+        ? { categorySlugs: params.categorySlugs.join(",") }
+        : {}),
       ...(params.subcategoryIds?.length
         ? { subcategoryIds: params.subcategoryIds.join(",") }
         : {}),

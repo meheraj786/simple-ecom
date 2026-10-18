@@ -4,7 +4,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ContactMessageForm } from "@/components/contact-message-form";
-import { useCategories, useProducts, useReviews } from "@/hooks";
+import {
+  useCategories,
+  useCategoryProducts,
+  useProducts,
+  useReviews,
+} from "@/hooks";
 import { toProductCard } from "@/lib/product-view";
 import {
   ChevronRight,
@@ -393,27 +398,28 @@ export default function HomePage() {
   }, [heroSlides.length]);
 
   const apiCategories = categoriesQuery.data?.items ?? [];
-  const homeCategories = categoriesQuery.isPending
-    ? shopCategories
-    : apiCategories.map((category, index) => ({
-        id: category.id,
-        name: category.name,
-        code: String(index + 1).padStart(2, "0"),
-        image:
-          category.image ??
-          shopCategories[index % shopCategories.length]?.image ??
-          "",
-      }));
-  const homeCuratedCategories = categoriesQuery.isPending
-    ? curatedCategories
-    : apiCategories.slice(0, 4).map((category, index) => ({
-        id: category.id,
-        title: category.name,
-        image:
-          category.image ??
-          curatedCategories[index % curatedCategories.length]?.image ??
-          "",
-      }));
+  const categoryProductQueries = useCategoryProducts(
+    apiCategories.map((category) => category.id),
+  );
+  const homeCategories = apiCategories.map((category, index) => ({
+    id: category.id,
+    name: category.name,
+    code: String(index + 1).padStart(2, "0"),
+    image:
+      category.image ??
+      shopCategories[index % shopCategories.length]?.image ??
+      "",
+  }));
+  const homeCuratedCategories = apiCategories
+    .slice(0, 4)
+    .map((category, index) => ({
+      id: category.id,
+      title: category.name,
+      image:
+        category.image ??
+        curatedCategories[index % curatedCategories.length]?.image ??
+        "",
+    }));
   const homeFeaturedProducts = featuredQuery.isPending
     ? featuredProducts
     : (featuredQuery.data?.items ?? []).map(toProductCard);
@@ -561,7 +567,7 @@ export default function HomePage() {
           <SectionHeader eyebrow="DEPARTMENT 01" title="SHOP BY CATEGORY" />
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {homeCategories.map((cat) => (
+            {homeCategories.slice(0, 4).map((cat) => (
               <Link
                 key={cat.id}
                 href={`/shop?categories=${encodeURIComponent(cat.id)}`}
@@ -660,6 +666,37 @@ export default function HomePage() {
           </div>
         </section>
 
+        {apiCategories.map((category, index) => {
+          const query = categoryProductQueries[index];
+          const products = query?.data?.items ?? [];
+
+          return (
+            <section
+              key={category.id}
+              className="max-w-7xl mx-auto px-4 sm:px-8"
+              aria-busy={query?.isPending}
+            >
+              <SectionHeader eyebrow="SHOP BY CATEGORY" title={category.name} />
+              {products.length > 0 ? (
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+                  {products.map((product) => (
+                    <ProductCard
+                      key={product.id}
+                      product={toProductCard(product)}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-gray-500">
+                  {query?.isPending
+                    ? "Loading products..."
+                    : "No products in this category yet."}
+                </p>
+              )}
+            </section>
+          );
+        })}
+
         {/* ========================================================
             FOOTWEAR
            ======================================================== */}
@@ -678,7 +715,7 @@ export default function HomePage() {
         <section className="max-w-7xl mx-auto px-4 sm:px-8">
           <SectionHeader
             eyebrow="CURATED SHOWCASE"
-            title="WATCHES"
+            title="Bags And Accessories"
             showArrows
           />
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
@@ -691,21 +728,21 @@ export default function HomePage() {
         {/* ========================================================
             WINTER WEAR
            ======================================================== */}
-        <section className="max-w-7xl mx-auto px-4 sm:px-8">
+        {/* <section className="max-w-7xl mx-auto px-4 sm:px-8">
           <SectionHeader eyebrow="CATALOG GRID" title="WINTER WEAR" />
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
             {homeWinterWear.map((p) => (
               <ProductCard key={p.id} product={p} />
             ))}
           </div>
-        </section>
+        </section> */}
 
         {/* ========================================================
             PROMO / DISCOUNT CTA BANNER
            ======================================================== */}
-        <section className="max-w-7xl mx-auto px-4 sm:px-8">
+        {/* <section className="max-w-7xl mx-auto px-4 sm:px-8">
           <div className="bg-linear-to-br from-[#1C1C1E] to-[#0a0a0b] text-white rounded-3xl p-8 sm:p-14 relative overflow-hidden flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
-            {/* Decorative glow */}
+   
             <div className="absolute -top-20 -right-20 w-72 h-72 bg-amber-500/10 rounded-full blur-3xl" />
 
             <div className="space-y-3 z-10 max-w-xl">
@@ -745,7 +782,7 @@ export default function HomePage() {
               </Link>
             </div>
           </div>
-        </section>
+        </section> */}
 
         {/* ========================================================
             COMMUNITY FEEDBACK / REVIEWS

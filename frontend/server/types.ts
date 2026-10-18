@@ -25,6 +25,7 @@ export type ProductListParams = ListParams & {
   minPrice?: number;
   maxPrice?: number;
   categoryIds?: string[];
+  categorySlugs?: string[];
   subcategoryIds?: string[];
   minRating?: number;
   variantOptions?: Record<string, string[]>;

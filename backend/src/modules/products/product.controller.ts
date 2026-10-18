@@ -4,7 +4,7 @@ import { createCrudController } from "../crud/crud.controller.js";
 import {
   createAdminProduct,
   getAdminProductById,
-  getProductByIdOrSlug,
+  getProductBySlug,
   listAdminProducts,
   listProducts,
   productService,
@@ -108,6 +108,11 @@ export const listProductsController: RequestHandler = async (
       : queryString(request.query.categoryId)
         ? { categoryIds: [queryString(request.query.categoryId)!] }
         : {}),
+    ...(queryList(request.query.categorySlugs).length
+      ? { categorySlugs: queryList(request.query.categorySlugs) }
+      : queryString(request.query.categorySlug)
+        ? { categorySlugs: [queryString(request.query.categorySlug)!] }
+        : {}),
     ...(queryList(request.query.subcategoryIds).length
       ? { subcategoryIds: queryList(request.query.subcategoryIds) }
       : queryString(request.query.subcategoryId)
@@ -132,14 +137,14 @@ export const getProductController: RequestHandler = async (
 ) => {
   const identifier = request.params.id;
   if (typeof identifier !== "string") {
-    errorResponse(response, 400, "A valid product id or slug is required");
+    errorResponse(response, 400, "A valid product slug is required");
     return;
   }
 
   successResponse(
     response,
     "Product loaded",
-    await getProductByIdOrSlug(identifier),
+    await getProductBySlug(identifier),
   );
 };
 

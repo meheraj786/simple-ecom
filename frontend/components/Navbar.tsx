@@ -20,6 +20,8 @@ export default function Navbar() {
   const cartCount = useCartStore((state) =>
     state.items.reduce((total, item) => total + item.quantity, 0),
   );
+  const dateAndTime= new Date().toLocaleString();
+
 
   const navLinks = [
     { name: "Home", href: "/" },
@@ -48,7 +50,7 @@ export default function Navbar() {
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div className="flex items-center gap-1">
             <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" />
-            <span>Guest</span>
+            <span>{dateAndTime}</span>
           </div>
           <div className="flex items-center gap-6">
             <Link

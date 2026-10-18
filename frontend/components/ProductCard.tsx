@@ -1,6 +1,7 @@
 import { Star, ShoppingBag } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import type { ReactNode } from "react";
 
 export interface Product {
   id: string;
@@ -24,7 +25,6 @@ export interface Product {
 }
 
 export function ProductCard({ product }: { product: Product }) {
-  const productHref = `/shop/${encodeURIComponent(product.slug || product.id)}`;
   const stockStatus =
     product.stockStatus ??
     (product.inStock === false ? "OUT_OF_STOCK" : "IN_STOCK");
@@ -38,8 +38,8 @@ export function ProductCard({ product }: { product: Product }) {
 
   return (
     <article className="group flex min-w-0 flex-col bg-white">
-      <Link
-        href={productHref}
+      <ProductCardLink
+        slug={product.slug}
         aria-label={`View ${product.name}`}
         className="relative block aspect-3/4 w-full overflow-hidden border border-gray-100 bg-gray-50"
       >
@@ -85,7 +85,7 @@ export function ProductCard({ product }: { product: Product }) {
             )}
           </div>
         </div>
-      </Link>
+      </ProductCardLink>
 
       <div className="flex grow flex-col gap-1.5 pt-3">
         <div className="flex min-w-0 items-center justify-between gap-2">
@@ -100,12 +100,12 @@ export function ProductCard({ product }: { product: Product }) {
           )}
         </div>
 
-        <Link
-          href={productHref}
+        <ProductCardLink
+          slug={product.slug}
           className="line-clamp-2 min-h-9 text-sm font-medium leading-5 text-gray-900 hover:underline"
         >
           {product.name}
-        </Link>
+        </ProductCardLink>
 
         <div className="mt-auto flex flex-wrap items-baseline gap-x-2 gap-y-1 pt-1">
           <span
@@ -141,5 +141,29 @@ export function ProductCard({ product }: { product: Product }) {
         </div>
       </div>
     </article>
+  );
+}
+
+function ProductCardLink({
+  slug,
+  className,
+  ariaLabel,
+  children,
+}: {
+  slug?: string;
+  className: string;
+  ariaLabel?: string;
+  children: ReactNode;
+}) {
+  if (!slug) return <div className={className}>{children}</div>;
+
+  return (
+    <Link
+      href={`/shop/${encodeURIComponent(slug)}`}
+      aria-label={ariaLabel}
+      className={className}
+    >
+      {children}
+    </Link>
   );
 }

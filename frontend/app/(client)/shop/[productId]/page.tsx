@@ -4,8 +4,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Suspense, useState } from "react";
-import { ArrowLeft, Minus, Plus, ShoppingBag, Star } from "lucide-react";
+import { ArrowLeft, Minus, Play, Plus, ShoppingBag, Star } from "lucide-react";
 import { ProductCard } from "@/components/ProductCard";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useProduct, useProducts } from "@/hooks";
 import { toProductCard } from "@/lib/product-view";
 import { useCartStore } from "@/lib/cart-store";
@@ -15,38 +16,74 @@ const formatPrice = (price: string) =>
 
 export default function ProductDetailPage() {
   return (
-    <Suspense
-      fallback={
-        <main className="mx-auto w-full max-w-7xl px-5 py-20 text-sm text-gray-500">
-          Loading product…
-        </main>
-      }
-    >
+    <Suspense fallback={<ProductDetailSkeleton />}>
       <ProductDetailContent />
     </Suspense>
+  );
+}
+
+function ProductDetailSkeleton() {
+  return (
+    <main
+      aria-busy="true"
+      aria-label="Loading product"
+      className="mx-auto w-full max-w-7xl px-5 py-8 sm:px-8"
+    >
+      <Skeleton className="mb-8 h-4 w-20 rounded-none" />
+      <div className="grid gap-10 md:grid-cols-2 md:gap-16">
+        <div>
+          <Skeleton className="aspect-4/5 w-full rounded-none" />
+          <div className="mt-3 flex gap-2">
+            <Skeleton className="size-16 rounded-none sm:size-20" />
+            <Skeleton className="size-16 rounded-none sm:size-20" />
+            <Skeleton className="size-16 rounded-none sm:size-20" />
+          </div>
+        </div>
+        <section className="flex flex-col py-2">
+          <Skeleton className="h-3 w-24 rounded-none" />
+          <Skeleton className="mt-3 h-9 w-4/5 rounded-none" />
+          <Skeleton className="mt-4 h-4 w-20 rounded-none" />
+          <Skeleton className="mt-6 h-6 w-28 rounded-none" />
+          <div className="mt-6 space-y-2">
+            <Skeleton className="h-3 w-full rounded-none" />
+            <Skeleton className="h-3 w-11/12 rounded-none" />
+            <Skeleton className="h-3 w-3/4 rounded-none" />
+          </div>
+          <div className="mt-8 border-y border-gray-200 py-6">
+            <Skeleton className="h-4 w-32 rounded-none" />
+            <div className="mt-4 flex gap-2">
+              <Skeleton className="h-10 w-20 rounded-none" />
+              <Skeleton className="h-10 w-20 rounded-none" />
+              <Skeleton className="h-10 w-20 rounded-none" />
+            </div>
+          </div>
+          <div className="mt-6 flex gap-3">
+            <Skeleton className="h-11 w-28 rounded-none" />
+            <Skeleton className="h-11 flex-1 rounded-none" />
+          </div>
+        </section>
+      </div>
+    </main>
   );
 }
 
 function ProductDetailContent() {
   const params = useParams<{ productId: string }>();
   const productQuery = useProduct(params.productId);
-  const categoryId = productQuery.data?.categories?.[0]?.category.id;
+  const categorySlug = productQuery.data?.categories?.[0]?.category.slug;
   const relatedQuery = useProducts({
     page: 1,
     limit: 100,
-    ...(categoryId ? { categoryIds: [categoryId] } : {}),
+    ...(categorySlug ? { categorySlugs: [categorySlug] } : {}),
   });
   const addItem = useCartStore((state) => state.addItem);
   const [selectedVariantId, setSelectedVariantId] = useState<string>();
+  const [selectedMediaUrl, setSelectedMediaUrl] = useState<string>();
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
 
   if (productQuery.isPending) {
-    return (
-      <main className="mx-auto w-full max-w-7xl px-5 py-20 text-sm text-gray-500">
-        Loading product…
-      </main>
-    );
+    return <ProductDetailSkeleton />;
   }
 
   if (productQuery.isError || !productQuery.data) {
@@ -78,10 +115,18 @@ function ProductDetailContent() {
   const variants = product.variants ?? [];
   const selectedVariant =
     variants.find((variant) => variant.id === selectedVariantId) ?? variants[0];
-  const image =
-    product.baseImage ??
-    selectedVariant?.images[0] ??
-    variants.find((variant) => variant.images[0])?.images[0];
+  const variantMedia = selectedVariant?.images ?? [];
+  const galleryMedia =
+    variantMedia.length > 0
+      ? variantMedia
+      : product.baseImage
+        ? [product.baseImage]
+        : [];
+  const mainMedia = galleryMedia.includes(selectedMediaUrl ?? "")
+    ? selectedMediaUrl!
+    : galleryMedia[0];
+  const cartImage =
+    galleryMedia.find((media) => !isVideoUrl(media)) ?? product.baseImage;
   const category = product.categories?.[0]?.category.name ?? "Collection";
   const optionsText = selectedVariant?.options
     .map((option) => `${option.name}: ${option.value}`)
@@ -97,7 +142,7 @@ function ProductDetailContent() {
         productId: product.id,
         productSlug: product.slug,
         productName: product.name,
-        image: image ?? null,
+        image: cartImage ?? null,
         variantId: selectedVariant.id,
         sku: selectedVariant.sku,
         unitPrice: selectedVariant.price,
@@ -118,24 +163,76 @@ function ProductDetailContent() {
       </Link>
 
       <div className="grid gap-10 md:grid-cols-2 md:gap-16">
-        <div className="relative aspect-4/5 overflow-hidden bg-gray-100">
-          {image ? (
-            <Image
-              src={image}
-              alt={product.name}
-              fill
-              priority
-              className="object-cover"
-            />
-          ) : (
-            <div className="absolute inset-0 flex items-center justify-center text-gray-400">
-              <ShoppingBag className="h-12 w-12" />
+        <div>
+          <div className="relative aspect-4/5 overflow-hidden bg-gray-100">
+            {mainMedia ? (
+              isVideoUrl(mainMedia) ? (
+                <video
+                  key={mainMedia}
+                  src={mainMedia}
+                  controls
+                  playsInline
+                  className="absolute inset-0 h-full w-full bg-black object-contain"
+                />
+              ) : (
+                <Image
+                  src={mainMedia}
+                  alt={product.name}
+                  fill
+                  priority
+                  className="object-cover"
+                />
+              )
+            ) : (
+              <div className="absolute inset-0 flex items-center justify-center text-gray-400">
+                <ShoppingBag className="h-12 w-12" />
+              </div>
+            )}
+            {product.status !== "IN_STOCK" && (
+              <span className="absolute left-4 top-4 bg-white px-3 py-2 text-[10px] font-semibold uppercase tracking-wider">
+                {product.status.replaceAll("_", " ")}
+              </span>
+            )}
+          </div>
+          {galleryMedia.length > 1 && (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {galleryMedia.map((media, index) => {
+                const isVideo = isVideoUrl(media);
+                const selected = media === mainMedia;
+                return (
+                  <button
+                    key={`${media}-${index}`}
+                    type="button"
+                    aria-label={`View product ${isVideo ? "video" : "image"} ${index + 1}`}
+                    aria-pressed={selected}
+                    onClick={() => setSelectedMediaUrl(media)}
+                    className={`relative aspect-square w-16 overflow-hidden border bg-gray-100 sm:w-20 ${selected ? "border-gray-950" : "border-gray-200"}`}
+                  >
+                    {isVideo ? (
+                      <>
+                        <video
+                          src={media}
+                          muted
+                          preload="metadata"
+                          className="h-full w-full object-cover"
+                        />
+                        <span className="absolute inset-0 grid place-items-center bg-black/20 text-white">
+                          <Play className="h-5 w-5 fill-current" />
+                        </span>
+                      </>
+                    ) : (
+                      <Image
+                        src={media}
+                        alt={`${product.name} image ${index + 1}`}
+                        fill
+                        sizes="80px"
+                        className="object-cover"
+                      />
+                    )}
+                  </button>
+                );
+              })}
             </div>
-          )}
-          {product.status !== "IN_STOCK" && (
-            <span className="absolute left-4 top-4 bg-white px-3 py-2 text-[10px] font-semibold uppercase tracking-wider">
-              {product.status.replaceAll("_", " ")}
-            </span>
           )}
         </div>
 
@@ -192,6 +289,7 @@ function ProductDetailContent() {
                     aria-pressed={selected}
                     onClick={() => {
                       setSelectedVariantId(variant.id);
+                      setSelectedMediaUrl(undefined);
                       setAdded(false);
                     }}
                     className={`min-h-10 border px-3 text-xs transition ${selected ? "border-black bg-black text-white" : "border-gray-200 text-gray-700 hover:border-black"}`}
@@ -275,7 +373,7 @@ function ProductDetailContent() {
               </h2>
             </div>
             <Link
-              href={`/shop?categories=${encodeURIComponent(categoryId ?? "")}`}
+              href={`/shop?categories=${encodeURIComponent(categorySlug ?? "")}`}
               className="shrink-0 text-xs font-medium text-gray-600 underline underline-offset-4 hover:text-black"
             >
               View category
@@ -299,4 +397,15 @@ function hash(value: string) {
     result = Math.imul(result, 16777619);
   }
   return result >>> 0;
+}
+
+function isVideoUrl(url: string) {
+  try {
+    const path = new URL(url).pathname.toLowerCase();
+    return (
+      path.includes("/video/upload/") || /\.(mp4|mov|webm|m4v)$/.test(path)
+    );
+  } catch {
+    return false;
+  }
 }
