@@ -697,9 +697,7 @@ export default function HomePage() {
           );
         })}
 
-        {/* ========================================================
-            FOOTWEAR
-           ======================================================== */}
+
         <section className="max-w-7xl mx-auto px-4 sm:px-8">
           <SectionHeader eyebrow="CATALOG GRID" title="FOOTWEAR" />
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
