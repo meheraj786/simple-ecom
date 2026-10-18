@@ -10,6 +10,7 @@ import {
   ChevronDown,
   Search,
   RotateCcw,
+  X,
 } from "lucide-react";
 import { useCategories, useProducts, useSubcategories } from "@/hooks";
 import { ProductCard } from "@/components/ProductCard";
@@ -101,6 +102,7 @@ function ShopContent() {
 
   // Category filter search query inside sidebar
   const [categorySearch, setCategorySearch] = useState("");
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   // 2. Synchronize State changes into URL Params
   const updateUrlParams = useCallback(
@@ -245,6 +247,14 @@ function ShopContent() {
   const filteredCategoriesList = categoryRecords.filter((category) =>
     category.name.toLowerCase().includes(categorySearch.toLowerCase()),
   );
+  const activeFilterCount =
+    selectedCategories.length +
+    selectedSubcategories.length +
+    selectedCollections.length +
+    Number(minPrice > 0) +
+    Number(maxPrice < 10000) +
+    Number(minRating > 0) +
+    Number(inStockOnly);
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-8 py-6">
       {/* Breadcrumb */}
@@ -261,7 +271,14 @@ function ShopContent() {
         {/* ========================================================
             LEFT: FILTERS SIDEBAR
            ======================================================== */}
-        <aside className="lg:col-span-3 space-y-6 bg-white pr-2">
+        <aside
+          id="shop-filters"
+          className={`lg:col-span-3 space-y-6 bg-white pr-2 ${
+            filtersOpen
+              ? "block max-h-[70dvh] overflow-y-auto border border-gray-200 p-4 lg:max-h-none lg:overflow-visible lg:border-0 lg:p-0"
+              : "hidden lg:block"
+          }`}
+        >
           {/* Header */}
           <div className="flex items-center justify-between border-b border-gray-100 pb-3">
             <div className="flex items-center gap-2">
@@ -274,6 +291,14 @@ function ShopContent() {
               className="text-[11px] text-gray-400 hover:text-black flex items-center gap-1 transition"
             >
               <RotateCcw className="w-3 h-3" /> Reset
+            </button>
+            <button
+              type="button"
+              onClick={() => setFiltersOpen(false)}
+              aria-label="Close filters"
+              className="grid size-8 place-items-center text-gray-500 hover:text-black lg:hidden"
+            >
+              <X className="size-4" />
             </button>
           </div>
 
@@ -499,6 +524,13 @@ function ShopContent() {
               />
             </button>
           </div>
+          <button
+            type="button"
+            onClick={() => setFiltersOpen(false)}
+            className="sticky bottom-0 w-full border border-black bg-black px-4 py-3 text-sm font-semibold text-white lg:hidden"
+          >
+            Show {totalProducts} results
+          </button>
         </aside>
 
         {/* ========================================================
@@ -520,7 +552,22 @@ function ShopContent() {
             </p>
 
             {/* Sort Dropdown */}
-            <div className="flex items-center gap-2 self-end sm:self-auto">
+            <div className="flex w-full items-center justify-between gap-3 sm:w-auto sm:justify-end">
+              <button
+                type="button"
+                aria-expanded={filtersOpen}
+                aria-controls="shop-filters"
+                onClick={() => setFiltersOpen((open) => !open)}
+                className="inline-flex h-9 items-center gap-2 border border-gray-200 px-3 text-xs font-medium text-gray-800 lg:hidden"
+              >
+                <SlidersHorizontal className="size-4" />
+                Filters
+                {activeFilterCount > 0 && (
+                  <span className="grid size-5 place-items-center rounded-full bg-black text-[10px] text-white">
+                    {activeFilterCount}
+                  </span>
+                )}
+              </button>
               <span className="text-xs text-gray-400">Sort:</span>
               <div className="relative">
                 <select
