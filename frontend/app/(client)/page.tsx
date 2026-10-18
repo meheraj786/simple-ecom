@@ -374,7 +374,7 @@ export default function HomePage() {
     },
     {
       image:
-        "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=1920&q=85",
+        "https://images.unsplash.com/photo-1760565030264-c737b92e887d?q=80&w=1169&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=NHwxMjA3fDA%3D",
       alt: "New season fashion collection",
       eyebrow: "NEW SEASON",
       title: "A fresh point\nof view.",
@@ -696,7 +696,6 @@ export default function HomePage() {
             </section>
           );
         })}
-
 
         <section className="max-w-7xl mx-auto px-4 sm:px-8">
           <SectionHeader eyebrow="CATALOG GRID" title="FOOTWEAR" />
